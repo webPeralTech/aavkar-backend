@@ -87,7 +87,7 @@ export const registerSchema = z.object({
       .max(50, 'Last name cannot be more than 50 characters'),
     email: z.string().email('Please enter a valid email'),
     password: z.string().min(6, 'Password must be at least 6 characters'),
-    role: z.enum(['admin', 'manager', 'sales', 'support']).optional(),
+    role: z.enum(['admin', 'manager', 'sales', 'support', 'employee']).optional(),
   }),
 });
 
