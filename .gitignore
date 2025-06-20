@@ -14,8 +14,8 @@ yarn-error.log*
 .env.test
 .env.production
 
-# Build output
-dist/
+# Build output - temporarily allowing dist/ for Render deployment
+# dist/
 build/
 
 # IDE and editor files
