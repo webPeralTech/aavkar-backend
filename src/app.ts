@@ -49,6 +49,18 @@ setupSwagger(app);
 // Routes
 app.use('/api', routes);
 
+// Root route handler
+app.get('/', (req, res) => {
+  logger.info('Root route accessed');
+  res.json({
+    message: 'Welcome to CRM Backend API',
+    status: 'running',
+    documentation: '/api-docs',
+    health: '/api/health',
+    version: '1.0.0'
+  });
+});
+
 // Health check endpoint
 app.get('/api/health', (req, res) => {
   logger.info('Health check requested');
