@@ -54,7 +54,7 @@ const countrySchema = new Schema<ICountry>(
 );
 
 // Create indexes for better performance
-countrySchema.index({ name: 1 });
-countrySchema.index({ isoCode: 1 });
+// countrySchema.index({ name: 1 }); // Removed: already has unique: true
+// countrySchema.index({ isoCode: 1 }); // Removed: already has unique: true
 
 export default mongoose.model<ICountry>('Country', countrySchema); 

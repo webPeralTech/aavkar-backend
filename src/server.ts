@@ -2,6 +2,11 @@ import app from './app';
 import connectDB from './config/database';
 import logger from './utils/logger';
 
+// Set NODE_ENV to production if not set
+if (!process.env.NODE_ENV) {
+  process.env.NODE_ENV = 'production';
+}
+
 const PORT = process.env.PORT || 5000;
 
 const startServer = async (): Promise<void> => {

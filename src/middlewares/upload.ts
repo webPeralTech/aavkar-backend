@@ -44,8 +44,47 @@ const upload = multer({
 // Middleware to handle single image upload for products
 export const uploadProductImage = upload.single('photo');
 
-// Middleware to handle single image upload for company logos
-export const uploadCompanyLogo = upload.single('logo');
+// Middleware to handle form-data with optional logo upload for companies
+export const uploadCompanyLogo = (req: Request, res: Response, next: NextFunction) => {
+  // Configure multer to handle all form-data fields
+  const logoUpload = multer({
+    storage,
+    fileFilter: (req, file, cb) => {
+      // Only validate file type for logo field (accept both 'logo' and 'company_logo')
+      if (file.fieldname === 'logo' || file.fieldname === 'company_logo') {
+        if (file.mimetype.startsWith('image/')) {
+          cb(null, true);
+        } else {
+          cb(new Error('Only image files are allowed for logo!'));
+        }
+      } else {
+        cb(null, true);
+      }
+    },
+    limits: {
+      fileSize: 5 * 1024 * 1024, // 5MB limit for files
+      fields: 20, // Allow up to 20 form fields
+      fieldSize: 2 * 1024 * 1024, // 2MB per text field
+    },
+  }).any(); // Accept any form fields
+
+  logoUpload(req, res, (err) => {
+    if (err) {
+      return next(err);
+    }
+    
+    // Separate logo file from other fields
+    if (req.files && Array.isArray(req.files)) {
+      req.files.forEach((file: Express.Multer.File) => {
+        if (file.fieldname === 'logo' || file.fieldname === 'company_logo') {
+          req.file = file; // Set logo file for processing
+        }
+      });
+    }
+    
+    next();
+  });
+};
 
 // Middleware to process and save the uploaded image
 export const processProductImage = async (req: Request, res: Response, next: NextFunction) => {
@@ -126,6 +165,48 @@ export const processCompanyLogo = async (req: Request, res: Response, next: Next
 // Middleware to handle multiple images (for future use)
 export const uploadMultipleImages = upload.array('photos', 5);
 
+// Middleware to preprocess form-data for company creation/update
+export const preprocessCompanyFormData = (req: Request, res: Response, next: NextFunction) => {
+  // Always process the body, regardless of content-type
+  if (req.body && typeof req.body === 'object') {
+    // Convert empty strings to undefined for optional fields
+    const optionalFields = ['office_contact_number', 'website', 'gst_no', 'ip_whitelisting', 'message_tokens'];
+    
+    optionalFields.forEach(field => {
+      if (req.body[field] === '' || req.body[field] === null || req.body[field] === undefined) {
+        delete req.body[field];
+      }
+    });
+
+    // Ensure email is lowercase
+    if (req.body.email && typeof req.body.email === 'string') {
+      req.body.email = req.body.email.toLowerCase().trim();
+    }
+
+    // Trim all string fields
+    Object.keys(req.body).forEach(key => {
+      if (typeof req.body[key] === 'string') {
+        req.body[key] = req.body[key].trim();
+      }
+    });
+  }
+  
+  next();
+};
+
+// Debug middleware to log request data (remove in production)
+export const debugCompanyRequest = (req: Request, res: Response, next: NextFunction) => {
+  console.log('=== Debug Company Request ===');
+  console.log('Content-Type:', req.headers['content-type']);
+  console.log('Body:', req.body);
+  console.log('Files:', req.files);
+  console.log('File:', req.file);
+  console.log('Body keys:', Object.keys(req.body));
+  console.log('Body values:', Object.values(req.body));
+  console.log('===========================');
+  next();
+};
+
 // Error handling middleware for multer
 export const handleUploadError = (error: any, req: Request, res: Response, next: NextFunction) => {
   if (error instanceof multer.MulterError) {
@@ -143,6 +224,12 @@ export const handleUploadError = (error: any, req: Request, res: Response, next:
         error: 'Maximum 5 files allowed'
       });
     }
+    // Handle other multer errors
+    return res.status(400).json({
+      statusCode: 400,
+      message: 'File upload error',
+      error: error.message
+    });
   }
   
   if (error.message === 'Only image files are allowed!') {
@@ -153,5 +240,6 @@ export const handleUploadError = (error: any, req: Request, res: Response, next:
     });
   }
 
+  // If it's not a multer error, pass it to the next middleware
   next(error);
 }; 

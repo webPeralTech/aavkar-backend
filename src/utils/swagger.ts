@@ -14,6 +14,32 @@ const options = {
         email: 'support@crm.com',
       },
     },
+    tags: [
+      {
+        name: 'Authentication',
+        description: 'Authentication related endpoints'
+      },
+      {
+        name: 'Users',
+        description: 'User management endpoints'
+      },
+      {
+        name: 'Customers',
+        description: 'Customer management endpoints'
+      },
+      {
+        name: 'Companies',
+        description: 'Company management endpoints'
+      },
+      {
+        name: 'Products',
+        description: 'Product management endpoints'
+      },
+      {
+        name: 'Locations',
+        description: 'Location management endpoints'
+      }
+    ],
     servers: [
       {
         url: process.env.NODE_ENV === 'production'
