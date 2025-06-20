@@ -1,0 +1,12 @@
+# Render ignore file
+# Do NOT ignore the dist directory as it contains our built application
+# node_modules will be installed by npm install
+node_modules/
+.git/
+.env.local
+.env.development
+.env.test
+*.log
+coverage/
+.vscode/
+.idea/ 
