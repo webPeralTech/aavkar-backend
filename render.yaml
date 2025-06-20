@@ -2,8 +2,9 @@ services:
   - type: web
     name: aavkar-backend
     env: node
-    buildCommand: npm ci && npm run build
-    startCommand: npm start
+    root: .
+    buildCommand: npm ci && npm run build && echo "Build completed" && pwd && ls -la dist/
+    startCommand: pwd && ls -la && node dist/server.js
     envVars:
       - key: NODE_ENV
         value: production 
