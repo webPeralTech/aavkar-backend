@@ -41,12 +41,13 @@ export const validateRequest = (schema: z.ZodSchema) => {
       next();
     } catch (error) {
       if (error instanceof z.ZodError) {
+        const errorDetails = error.errors.map(err => ({
+          field: err.path.join('.'),
+          message: err.message
+        }));
         return res.status(400).json({
           error: 'Validation Error',
-          details: error.errors.map(err => ({
-            field: err.path.join('.'),
-            message: err.message
-          }))
+          details: errorDetails
         });
       }
       next(error);
@@ -87,7 +88,7 @@ export const registerSchema = z.object({
       .max(50, 'Last name cannot be more than 50 characters'),
     email: z.string().email('Please enter a valid email'),
     password: z.string().min(6, 'Password must be at least 6 characters'),
-    role: z.enum(['admin', 'manager', 'sales', 'support', 'employee']).optional(),
+    role: z.enum(['admin', 'manager', 'sales', 'support']).optional(),
   }),
 });
 
@@ -237,33 +238,91 @@ export type UpdateCustomerWithIdRequest = z.infer<typeof updateCustomerWithIdSch
 // Company validation schemas
 export const createCompanySchema = z.object({
   body: z.object({
-    company_name: z.string().min(1, 'Company name is required'),
-    company_legal_name: z.string().min(1, 'Company legal name is required'),
-    company_logo: z.string().optional(),
-    company_address: z.string().min(1, 'Company address is required'),
-    primary_contact_number: z.string().min(1, 'Primary contact number is required'),
-    office_contact_number: z.string().optional(),
-    email: z.string().email('Please enter a valid email'),
-    website: z.string().url('Please enter a valid URL').optional(),
-    gst_no: z.string().optional(),
-    ip_whitelisting: z.array(z.string().ip()).default([]),
-    message_tokens: z.array(z.string()).default([]),
+    company_name: z.string()
+      .min(1, 'Company name is required')
+      .max(100, 'Company name cannot be more than 100 characters')
+      .trim(),
+    company_legal_name: z.string()
+      .min(1, 'Company legal name is required')
+      .max(200, 'Company legal name cannot be more than 200 characters')
+      .trim(),
+    company_logo: z.string()
+      .url('Company logo must be a valid URL')
+      .optional(),
+    company_address: z.string()
+      .min(1, 'Company address is required')
+      .max(500, 'Company address cannot be more than 500 characters')
+      .trim(),
+    primary_contact_number: z.string()
+      .min(1, 'Primary contact number is required')
+      .regex(/^[+]?[(]?[0-9]{3}[)]?[-\s.]?[0-9]{3}[-\s.]?[0-9]{4,6}$/, 'Please enter a valid phone number')
+      .trim(),
+    office_contact_number: z.string()
+      .regex(/^[+]?[(]?[0-9]{3}[)]?[-\s.]?[0-9]{3}[-\s.]?[0-9]{4,6}$/, 'Please enter a valid phone number')
+      .trim()
+      .optional(),
+    email: z.string()
+      .min(1, 'Email is required')
+      .email('Please enter a valid email address')
+      .trim()
+      .toLowerCase(),
+    website: z.string()
+      .url('Please enter a valid URL')
+      .trim()
+      .optional(),
+    gst_no: z.string()
+      .regex(/^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/, 'Please enter a valid GST number')
+      .trim()
+      .optional(),
+    ip_whitelisting: z.array(z.string().ip('Please enter valid IP addresses')).default([]),
+    message_tokens: z.array(z.string().min(8, 'Message tokens must be at least 8 characters long')).default([]),
   }),
 });
 
 export const updateCompanySchema = z.object({
   body: z.object({
-    company_name: z.string().min(1, 'Company name is required').optional(),
-    company_legal_name: z.string().min(1, 'Company legal name is required').optional(),
-    company_logo: z.string().optional(),
-    company_address: z.string().min(1, 'Company address is required').optional(),
-    primary_contact_number: z.string().min(1, 'Primary contact number is required').optional(),
-    office_contact_number: z.string().optional(),
-    email: z.string().email('Please enter a valid email').optional(),
-    website: z.string().url('Please enter a valid URL').optional(),
-    gst_no: z.string().optional(),
-    ip_whitelisting: z.array(z.string().ip()).optional(),
-    message_tokens: z.array(z.string()).optional(),
+    company_name: z.string()
+      .min(1, 'Company name is required')
+      .max(100, 'Company name cannot be more than 100 characters')
+      .trim()
+      .optional(),
+    company_legal_name: z.string()
+      .min(1, 'Company legal name is required')
+      .max(200, 'Company legal name cannot be more than 200 characters')
+      .trim()
+      .optional(),
+    company_logo: z.string()
+      .url('Company logo must be a valid URL')
+      .optional(),
+    company_address: z.string()
+      .min(1, 'Company address is required')
+      .max(500, 'Company address cannot be more than 500 characters')
+      .trim()
+      .optional(),
+    primary_contact_number: z.string()
+      .min(1, 'Primary contact number is required')
+      .regex(/^[+]?[(]?[0-9]{3}[)]?[-\s.]?[0-9]{3}[-\s.]?[0-9]{4,6}$/, 'Please enter a valid phone number')
+      .trim()
+      .optional(),
+    office_contact_number: z.string()
+      .regex(/^[+]?[(]?[0-9]{3}[)]?[-\s.]?[0-9]{3}[-\s.]?[0-9]{4,6}$/, 'Please enter a valid phone number')
+      .trim()
+      .optional(),
+    email: z.string()
+      .email('Please enter a valid email address')
+      .trim()
+      .toLowerCase()
+      .optional(),
+    website: z.string()
+      .url('Please enter a valid URL')
+      .trim()
+      .optional(),
+    gst_no: z.string()
+      .regex(/^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/, 'Please enter a valid GST number')
+      .trim()
+      .optional(),
+    ip_whitelisting: z.array(z.string().ip('Please enter valid IP addresses')).optional(),
+    message_tokens: z.array(z.string().min(8, 'Message tokens must be at least 8 characters long')).optional(),
   }),
 });
 
@@ -274,25 +333,84 @@ export const companyIdParamSchema = z.object({
   }),
 });
 
-// Schema for creating company with file upload
+// Schema for creating company with file upload (flexible for both form-data and JSON)
 export const createCompanyWithFileSchema = z.object({
   body: z.object({
-    company_name: z.string().min(1, 'Company name is required'),
-    company_legal_name: z.string().min(1, 'Company legal name is required'),
-    company_address: z.string().min(1, 'Company address is required'),
-    primary_contact_number: z.string().min(1, 'Primary contact number is required'),
-    office_contact_number: z.string().optional(),
-    email: z.string().email('Please enter a valid email'),
-    website: z.string().url('Please enter a valid URL').optional(),
-    gst_no: z.string().optional(),
+    company_name: z.string()
+      .min(1, 'Company name is required')
+      .max(100, 'Company name cannot be more than 100 characters')
+      .trim(),
+    company_legal_name: z.string()
+      .min(1, 'Company legal name is required')
+      .max(200, 'Company legal name cannot be more than 200 characters')
+      .trim(),
+    company_address: z.string()
+      .min(1, 'Company address is required')
+      .max(500, 'Company address cannot be more than 500 characters')
+      .trim(),
+    primary_contact_number: z.string()
+      .min(1, 'Primary contact number is required')
+      .regex(/^[+]?[(]?[0-9]{3}[)]?[-\s.]?[0-9]{3}[-\s.]?[0-9]{4,6}$/, 'Please enter a valid phone number')
+      .trim(),
+    office_contact_number: z.string()
+      .regex(/^[+]?[(]?[0-9]{3}[)]?[-\s.]?[0-9]{3}[-\s.]?[0-9]{4,6}$/, 'Please enter a valid phone number')
+      .trim()
+      .optional()
+      .or(z.literal('')),
+    email: z.string()
+      .min(1, 'Email is required')
+      .email('Please enter a valid email address')
+      .trim()
+      .toLowerCase(),
+    website: z.string()
+      .trim()
+      .optional()
+      .or(z.literal('')),
+    gst_no: z.string()
+      .regex(/^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/, 'Please enter a valid GST number')
+      .trim()
+      .optional()
+      .or(z.literal('')),
+    // Handle both form-data (string) and JSON (array) formats for ip_whitelisting
     ip_whitelisting: z
-      .string()
+      .union([
+        z.string(),
+        z.array(z.string())
+      ])
       .optional()
-      .transform(val => val ? val.split(',').map(ip => ip.trim()) : []),
+      .transform(val => {
+        if (!val) return [];
+        if (typeof val === 'string') {
+          if (val.trim() === '') return [];
+          return val.split(',').map(ip => ip.trim()).filter(ip => ip.length > 0);
+        }
+        return val;
+      })
+      .refine(
+        (val: string[]) => val.every(ip => /^(\d{1,3}\.){3}\d{1,3}$/.test(ip)),
+        'Please enter valid IP addresses (comma-separated for form-data)'
+      ),
+    // Handle both form-data (string) and JSON (array) formats for message_tokens
     message_tokens: z
-      .string()
+      .union([
+        z.string(),
+        z.array(z.string())
+      ])
       .optional()
-      .transform(val => val ? val.split(',').map(token => token.trim()) : []),
+      .transform(val => {
+        if (!val) return [];
+        if (typeof val === 'string') {
+          if (val.trim() === '') return [];
+          return val.split(',').map(token => token.trim()).filter(token => token.length > 0);
+        }
+        return val;
+      })
+      .refine(
+        (val: string[]) => val.every(token => token.length >= 8),
+        'Message tokens must be at least 8 characters long (comma-separated for form-data)'
+      ),
+    // Company logo will be set by upload middleware
+    company_logo: z.string().optional(),
   }),
 });
 
@@ -302,22 +420,71 @@ export const updateCompanyWithFileSchema = z.object({
     id: z.string().min(1, 'Company ID is required'),
   }),
   body: z.object({
-    company_name: z.string().min(1, 'Company name is required').optional(),
-    company_legal_name: z.string().min(1, 'Company legal name is required').optional(),
-    company_address: z.string().min(1, 'Company address is required').optional(),
-    primary_contact_number: z.string().min(1, 'Primary contact number is required').optional(),
-    office_contact_number: z.string().optional(),
-    email: z.string().email('Please enter a valid email').optional(),
-    website: z.string().url('Please enter a valid URL').optional(),
-    gst_no: z.string().optional(),
+    company_name: z.string()
+      .min(1, 'Company name is required')
+      .max(100, 'Company name cannot be more than 100 characters')
+      .trim()
+      .optional(),
+    company_legal_name: z.string()
+      .min(1, 'Company legal name is required')
+      .max(200, 'Company legal name cannot be more than 200 characters')
+      .trim()
+      .optional(),
+    company_address: z.string()
+      .min(1, 'Company address is required')
+      .max(500, 'Company address cannot be more than 500 characters')
+      .trim()
+      .optional(),
+    primary_contact_number: z.string()
+      .min(1, 'Primary contact number is required')
+      .regex(/^[+]?[(]?[0-9]{3}[)]?[-\s.]?[0-9]{3}[-\s.]?[0-9]{4,6}$/, 'Please enter a valid phone number')
+      .trim()
+      .optional(),
+    office_contact_number: z.string()
+      .regex(/^[+]?[(]?[0-9]{3}[)]?[-\s.]?[0-9]{3}[-\s.]?[0-9]{4,6}$/, 'Please enter a valid phone number')
+      .trim()
+      .optional(),
+    email: z.string()
+      .email('Please enter a valid email address')
+      .trim()
+      .toLowerCase()
+      .optional(),
+    website: z.string()
+      .url('Please enter a valid URL')
+      .trim()
+      .optional(),
+    gst_no: z.string()
+      .regex(/^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/, 'Please enter a valid GST number')
+      .trim()
+      .optional(),
+    // Handle both form-data (string) and JSON (array) formats for ip_whitelisting
     ip_whitelisting: z
-      .string()
+      .union([
+        z.string().transform(val => {
+          if (!val || val.trim() === '') return undefined;
+          return val.split(',').map(ip => ip.trim()).filter(ip => ip.length > 0);
+        }),
+        z.array(z.string())
+      ])
       .optional()
-      .transform(val => val ? val.split(',').map(ip => ip.trim()) : undefined),
+      .refine(
+        (val: string[] | undefined) => !val || val.every(ip => /^(\d{1,3}\.){3}\d{1,3}$/.test(ip)),
+        'Please enter valid IP addresses (comma-separated for form-data)'
+      ),
+    // Handle both form-data (string) and JSON (array) formats for message_tokens
     message_tokens: z
-      .string()
+      .union([
+        z.string().transform(val => {
+          if (!val || val.trim() === '') return undefined;
+          return val.split(',').map(token => token.trim()).filter(token => token.length > 0);
+        }),
+        z.array(z.string())
+      ])
       .optional()
-      .transform(val => val ? val.split(',').map(token => token.trim()) : undefined),
+      .refine(
+        (val: string[] | undefined) => !val || val.every(token => token.length >= 8),
+        'Message tokens must be at least 8 characters long (comma-separated for form-data)'
+      ),
   }),
 });
 

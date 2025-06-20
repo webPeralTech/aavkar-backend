@@ -110,9 +110,7 @@ export const getAll = async (req: Request, res: Response): Promise<void> => {
       page = 1, 
       limit = 10,
       sortBy = 'createdAt',
-      sortOrder = 'desc', 
-      role,
-      status
+      sortOrder = 'desc'
     } = req.query;
     
     // Convert to numbers
@@ -135,12 +133,6 @@ export const getAll = async (req: Request, res: Response): Promise<void> => {
       };
     }
     
-    if (role && typeof role === 'string') {
-      searchQuery.role = role;  // Filter by role if provided 
-    }
-    if (status && typeof status === 'string') {
-      searchQuery.isActive = status === 'active';  // Filter by active status if provided
-    }
     // Build sort object
     const sortObj: any = {};
     sortObj[sortBy as string] = sortOrder === 'asc' ? 1 : -1;

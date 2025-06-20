@@ -76,7 +76,7 @@ const customerSchema = new Schema<ICustomer>(
 );
 
 // Create indexes for better query performance
-customerSchema.index({ email: 1 });
+// customerSchema.index({ email: 1 }); // Removed: already has unique: true
 customerSchema.index({ company: 1 });
 
 export default mongoose.model<ICustomer>('Customer', customerSchema);
