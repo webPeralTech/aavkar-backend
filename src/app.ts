@@ -36,10 +36,34 @@ app.use(requestLogger);
 //     credentials: true,
 //   })
 // );
+const allowedOrigins = [
+  process.env.CLIENT_URL || 'http://localhost:3000',
+  'http://localhost:5173',
+  'http://localhost:5000',
+  'https://aavkar-frontend.vercel.app',
+  'https://aavkar-backend.onrender.com'
+];
+
+// ✅ Step 2: Setup dynamic CORS middleware
 app.use((req, res, next) => {
-  console.log('Request Origin:', req.headers.origin);
+  console.log('➡️ Request Origin:', req.headers.origin);
   next();
 });
+
+app.use(
+  cors({
+    origin: function (origin, callback) {
+      if (!origin || allowedOrigins.includes(origin)) {
+        return callback(null, true);
+      }
+      return callback(new Error(`❌ CORS blocked for origin: ${origin}`), false);
+    },
+    credentials: true,
+  })
+);
+
+// ✅ Allow preflight requests
+app.options('*', cors());
 
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
