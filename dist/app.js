@@ -19,19 +19,55 @@ const app = (0, express_1.default)();
 // Request logging middleware (before other middleware)
 app.use(logger_1.requestLogger);
 // Middleware
-const allowedOrigins = [process.env.CLIENT_URL, 'http://localhost:5173', 'http://localhost:3000'];
+// const allowedOrigins = [process.env.CLIENT_URL, 'http://localhost:5173', 'http://localhost:3000', 'https://aavkar-frontend.vercel.app'];
+// app.use(
+//   cors({
+//     origin: function (origin, callback) {
+//       // allow requests with no origin (like mobile apps or curl requests)
+//       if (!origin) return callback(null, true);
+//       if (allowedOrigins.indexOf(origin) === -1) {
+//         const msg = 'The CORS policy for this site does not allow access from the specified Origin.';
+//         return callback(new Error(msg), false);
+//       }
+//       return callback(null, true);
+//     },
+//     credentials: true,
+//   })
+// );
+const allowedOrigins = [
+    process.env.CLIENT_URL,
+    'http://localhost:3000',
+    'http://localhost:5173',
+    'https://aavkar-frontend.vercel.app',
+    'https://aavkar-backend.onrender.com',
+].filter(Boolean);
 app.use((0, cors_1.default)({
     origin: function (origin, callback) {
-        // allow requests with no origin (like mobile apps or curl requests)
+        // Allow requests with no origin (like mobile apps, Postman, curl)
         if (!origin)
             return callback(null, true);
-        if (allowedOrigins.indexOf(origin) === -1) {
-            const msg = 'The CORS policy for this site does not allow access from the specified Origin.';
-            return callback(new Error(msg), false);
+        // Check if origin is in allowed list
+        if (allowedOrigins.includes(origin)) {
+            return callback(null, true);
         }
-        return callback(null, true);
+        // Log blocked origin for debugging
+        logger_2.default.warn(`Blocked by CORS: ${origin}`);
+        return callback(new Error(`The CORS policy for this site does not allow access from the specified Origin: ${origin}`), false);
     },
     credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+    allowedHeaders: [
+        'Origin',
+        'X-Requested-With',
+        'Content-Type',
+        'Accept',
+        'Authorization',
+        'Cache-Control',
+        'X-Access-Token'
+    ],
+    exposedHeaders: ['Authorization'],
+    preflightContinue: false,
+    optionsSuccessStatus: 200
 }));
 app.use(express_1.default.json({ limit: '10mb' }));
 app.use(express_1.default.urlencoded({ extended: true }));
@@ -41,6 +77,17 @@ app.use('/uploads', express_1.default.static('uploads'));
 (0, swagger_1.setupSwagger)(app);
 // Routes
 app.use('/api', routes_1.default);
+// Root route handler
+app.get('/', (req, res) => {
+    logger_2.default.info('Root route accessed');
+    res.json({
+        message: 'Welcome to CRM Backend API',
+        status: 'running',
+        documentation: '/api-docs',
+        health: '/api/health',
+        version: '1.0.0'
+    });
+});
 // Health check endpoint
 app.get('/api/health', (req, res) => {
     logger_2.default.info('Health check requested');
