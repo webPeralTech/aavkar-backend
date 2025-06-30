@@ -21,7 +21,7 @@ const app = express();
 app.use(requestLogger);
 
 // Middleware
-const allowedOrigins = [process.env.CLIENT_URL, 'http://localhost:5173', 'http://localhost:3000'];
+const allowedOrigins = [process.env.CLIENT_URL, 'http://localhost:5173', 'http://localhost:3000', 'https://aavkar-frontend.vercel.app'];
 app.use(
   cors({
     origin: function (origin, callback) {
