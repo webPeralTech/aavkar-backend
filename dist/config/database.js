@@ -15,7 +15,8 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const mongoose_1 = __importDefault(require("mongoose"));
 const connectDB = () => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const mongoURI = process.env.MONGODB_URI || 'mongodb://localhost:27017/crm_database';
+        console.log(process.env.MONGODB_URI);
+        const mongoURI = process.env.MONGODB_URI || 'mongodb+srv://jackofficial388:NDBYunMjr7io9AFX@cluster0.aforycx.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0/crm_database';
         yield mongoose_1.default.connect(mongoURI);
         console.log('✅ MongoDB connected successfully');
     }
