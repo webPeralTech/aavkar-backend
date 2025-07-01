@@ -36,16 +36,12 @@ router.use(authenticate);
  *           schema:
  *             type: object
  *             required:
- *               - firstName
- *               - lastName
+ *               - name
  *               - email
  *             properties:
- *               firstName:
+ *               name:
  *                 type: string
- *                 example: John
- *               lastName:
- *                 type: string
- *                 example: Doe
+ *                 example: John Doe
  *               email:
  *                 type: string
  *                 format: email
@@ -246,9 +242,7 @@ router.get('/:id', validate(idParamSchema), getCustomer);
  *           schema:
  *             type: object
  *             properties:
- *               firstName:
- *                 type: string
- *               lastName:
+ *               name:
  *                 type: string
  *               email:
  *                 type: string

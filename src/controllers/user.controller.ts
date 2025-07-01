@@ -5,7 +5,7 @@ import { decryptPassword } from '../utils/encryption';
 
 export const register = async (req: Request, res: Response): Promise<void> => {
   try {
-    const { firstName, lastName, email, password, role } = req.body;
+    const { name, email, password, role } = req.body;
 
     // Check if user already exists
     const existingUser = await User.findOne({ email });
@@ -20,11 +20,10 @@ export const register = async (req: Request, res: Response): Promise<void> => {
 
     // Create new user
     const user: IUser = new User({
-      firstName,
-      lastName,
+      name,
       email,
       password,
-      role: role || 'Employee',
+      role: role || 'employee',
     });
 
     await user.save();
@@ -43,8 +42,7 @@ export const register = async (req: Request, res: Response): Promise<void> => {
         token,
         user: {
           id: user._id,
-          firstName: user.firstName,
-          lastName: user.lastName,
+          name: user.name,
           email: user.email,
           role: user.role,
           isActive: user.isActive,
@@ -81,8 +79,7 @@ export const getProfile = async (req: Request, res: Response): Promise<void> => 
       data: {
         user: {
           id: user._id,
-          firstName: user.firstName,
-          lastName: user.lastName,
+          name: user.name,
           email: user.email,
           role: user.role,
           isActive: user.isActive,
@@ -125,8 +122,7 @@ export const getAll = async (req: Request, res: Response): Promise<void> => {
     if (search && typeof search === 'string' && search.trim() !== '') {
       searchQuery = {
         $or: [
-          { firstName: { $regex: search, $options: 'i' } },
-          { lastName: { $regex: search, $options: 'i' } },
+          { name: { $regex: search, $options: 'i' } },
           { email: { $regex: search, $options: 'i' } },
           { role: { $regex: search, $options: 'i' } }
         ]
@@ -230,8 +226,7 @@ export const deleteUser = async (req: Request, res: Response): Promise<void> => 
       data: {
         deletedUser: {
           id: user._id,
-          firstName: user.firstName,
-          lastName: user.lastName,
+          name: user.name,
           email: user.email,
           role: user.role
         }
@@ -297,8 +292,7 @@ export const toggleUserStatus = async (req: Request, res: Response): Promise<voi
       data: {
         user: {
           id: updatedUser!._id,
-          firstName: updatedUser!.firstName,
-          lastName: updatedUser!.lastName,
+          name: updatedUser!.name,
           email: updatedUser!.email,
           role: updatedUser!.role,
           isActive: updatedUser!.isActive,
@@ -320,7 +314,7 @@ export const toggleUserStatus = async (req: Request, res: Response): Promise<voi
 export const updateUser = async (req: Request, res: Response): Promise<void> => {
   try {
     const { userId } = req.params;
-    const { firstName, lastName, email, password, role } = req.body;
+    const { name, email, password, role } = req.body;
     
     // Check if user exists
     const user = await User.findById(userId);
@@ -348,8 +342,7 @@ export const updateUser = async (req: Request, res: Response): Promise<void> => 
 
     // Update only provided fields
     const updateData: any = {};
-    if (firstName !== undefined) updateData.firstName = firstName;
-    if (lastName !== undefined) updateData.lastName = lastName;
+    if (name !== undefined) updateData.name = name;
     if (email !== undefined) updateData.email = email;
     if (password !== undefined) updateData.password = password;
     if (role !== undefined) updateData.role = role;
@@ -367,8 +360,7 @@ export const updateUser = async (req: Request, res: Response): Promise<void> => 
       data: {
         user: {
           id: updatedUser!._id,
-          firstName: updatedUser!.firstName,
-          lastName: updatedUser!.lastName,
+          name: updatedUser!.name,
           email: updatedUser!.email,
           role: updatedUser!.role,
           isActive: updatedUser!.isActive,

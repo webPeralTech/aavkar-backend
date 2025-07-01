@@ -61,10 +61,9 @@ const options = {
           type: 'object',
           properties: {
             id: { type: 'string' },
-            firstName: { type: 'string' },
-            lastName: { type: 'string' },
+            name: { type: 'string' },
             email: { type: 'string', format: 'email' },
-            role: { type: 'string', enum: ['admin', 'manager', 'sales', 'support'] },
+            role: { type: 'string', enum: ['admin', 'manager', 'employee', 'sales', 'printing operator'] },
             isActive: { type: 'boolean' },
             createdAt: { type: 'string', format: 'date-time' },
             updatedAt: { type: 'string', format: 'date-time' },
@@ -74,8 +73,7 @@ const options = {
           type: 'object',
           properties: {
             id: { type: 'string' },
-            firstName: { type: 'string' },
-            lastName: { type: 'string' },
+            name: { type: 'string' },
             email: { type: 'string', format: 'email' },
             phone: { type: 'string' },
             company: { type: 'string' },

@@ -21,7 +21,7 @@ const router = express.Router();
  *         required: false
  *         schema:
  *           type: string
- *         description: Search term to filter users (searches in firstName, lastName, email, role)
+ *         description: Search term to filter users (searches in name, email, role)
  *         example: "john"
  *       - name: page
  *         in: query
@@ -47,10 +47,10 @@ const router = express.Router();
  *         required: false
  *         schema:
  *           type: string
- *           enum: [firstName, lastName, email, role, createdAt, updatedAt, lastLogin]
+ *           enum: [name, email, role, createdAt, updatedAt, lastLogin]
  *           default: createdAt
  *         description: Field to sort by
- *         example: "firstName"
+ *         example: "name"
  *       - name: sortOrder
  *         in: query
  *         required: false
@@ -118,7 +118,7 @@ const router = express.Router();
  *                           example: "john"
  *                         sortBy:
  *                           type: string
- *                           example: "firstName"
+ *                           example: "name"
  *                         sortOrder:
  *                           type: string
  *                           example: "asc"
@@ -188,17 +188,13 @@ router.get('/profile', authenticate, getProfile);
  *           schema:
  *             type: object
  *             required:
- *               - firstName
- *               - lastName
+ *               - name
  *               - email
  *               - password
  *             properties:
- *               firstName:
+ *               name:
  *                 type: string
- *                 example: John
- *               lastName:
- *                 type: string
- *                 example: Doe
+ *                 example: John Doe
  *               email:
  *                 type: string
  *                 format: email
@@ -209,8 +205,8 @@ router.get('/profile', authenticate, getProfile);
  *                 example: password123
  *               role:
  *                 type: string
- *                 enum: [admin, manager, sales, support]
- *                 default: sales
+ *                 enum: [admin, manager, employee, sales, printing operator]
+ *                 default: employee
  *     responses:
  *       201:
  *         description: User registered successfully
@@ -265,16 +261,11 @@ router.post('/register', validate(registerSchema), register);
  *           schema:
  *             type: object
  *             properties:
- *               firstName:
+ *               name:
  *                 type: string
- *                 maxLength: 50
- *                 description: User's first name
- *                 example: "John"
- *               lastName:
- *                 type: string
- *                 maxLength: 50
- *                 description: User's last name
- *                 example: "Doe"
+ *                 maxLength: 100
+ *                 description: User's full name
+ *                 example: "John Doe"
  *               email:
  *                 type: string
  *                 format: email
@@ -287,9 +278,9 @@ router.post('/register', validate(registerSchema), register);
  *                 example: "newPassword123"
  *               role:
  *                 type: string
- *                 enum: [admin, manager, sales, support]
+ *                 enum: [admin, manager, employee, sales, printing operator]
  *                 description: User's role in the system
- *                 example: "sales"
+ *                 example: "employee"
  *             description: All fields are optional. Only provided fields will be updated.
  *     responses:
  *       200:
@@ -371,12 +362,9 @@ router.post('/register', validate(registerSchema), register);
  *                         id:
  *                           type: string
  *                           example: "64f123abc456def789012345"
- *                         firstName:
+ *                         name:
  *                           type: string
- *                           example: "John"
- *                         lastName:
- *                           type: string
- *                           example: "Doe"
+ *                           example: "John Doe"
  *                         email:
  *                           type: string
  *                           example: "john.doe@example.com"
@@ -466,12 +454,9 @@ router.delete('/:userId', isAdmin, deleteUser);
  *                         id:
  *                           type: string
  *                           example: "64f123abc456def789012345"
- *                         firstName:
+ *                         name:
  *                           type: string
- *                           example: "John"
- *                         lastName:
- *                           type: string
- *                           example: "Doe"
+ *                           example: "John Doe"
  *                         email:
  *                           type: string
  *                           example: "john.doe@example.com"

@@ -73,8 +73,7 @@ export const login = async (req: Request, res: Response): Promise<void> => {
         token,
         user: {
           id: user._id,
-          firstName: user.firstName,
-          lastName: user.lastName,
+          name: user.name,
           email: user.email,
           role: user.role,
           isActive: user.isActive,

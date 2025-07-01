@@ -2,8 +2,7 @@ import mongoose, { Document, Schema } from 'mongoose';
 import { encryptPassword, comparePassword } from '../utils/encryption';
 
 export interface IUser extends Document {
-  firstName: string;
-  lastName: string;
+  name: string;
   email: string;
   password: string;
   role: 'admin' | 'manager' | 'employee' | 'sales' | 'printing operator';
@@ -16,17 +15,11 @@ export interface IUser extends Document {
 
 const userSchema = new Schema<IUser>(
   {
-    firstName: {
+    name: {
       type: String,
-      required: [true, 'First name is required'],
+      required: [true, 'Name is required'],
       trim: true,
-      maxlength: [50, 'First name cannot be more than 50 characters'],
-    },
-    lastName: {
-      type: String,
-      required: [true, 'Last name is required'],
-      trim: true,
-      maxlength: [50, 'Last name cannot be more than 50 characters'],
+      maxlength: [100, 'Name cannot be more than 100 characters'],
     },
     email: {
       type: String,

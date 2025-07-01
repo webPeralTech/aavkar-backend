@@ -1,8 +1,7 @@
 import mongoose, { Document, Schema } from 'mongoose';
 
 export interface ICustomer extends Document {
-  firstName: string;
-  lastName: string;
+  name: string;
   email: string;
   phone?: string;
   company?: string;
@@ -23,17 +22,11 @@ export interface ICustomer extends Document {
 
 const customerSchema = new Schema<ICustomer>(
   {
-    firstName: {
+    name: {
       type: String,
-      required: [true, 'First name is required'],
+      required: [true, 'Name is required'],
       trim: true,
-      maxlength: [50, 'First name cannot be more than 50 characters'],
-    },
-    lastName: {
-      type: String,
-      required: [true, 'Last name is required'],
-      trim: true,
-      maxlength: [50, 'Last name cannot be more than 50 characters'],
+      maxlength: [100, 'Name cannot be more than 100 characters'],
     },
     email: {
       type: String,
