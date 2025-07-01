@@ -78,14 +78,18 @@ export const validateParams = (schema: z.ZodSchema) => {
 // Auth validation schemas
 export const registerSchema = z.object({
   body: z.object({
-    firstName: z
+    // firstName: z
+    //   .string()
+    //   .min(1, 'First name is required')
+    //   .max(50, 'First name cannot be more than 50 characters'),
+    // lastName: z
+    //   .string()
+    //   .min(1, 'Last name is required')
+    //   .max(50, 'Last name cannot be more than 50 characters'),
+    name: z
       .string()
-      .min(1, 'First name is required')
-      .max(50, 'First name cannot be more than 50 characters'),
-    lastName: z
-      .string()
-      .min(1, 'Last name is required')
-      .max(50, 'Last name cannot be more than 50 characters'),
+      .min(1, 'Name is required')
+      .max(50, 'Name cannot be more than 50 characters'),
     email: z.string().email('Please enter a valid email'),
     password: z.string().min(6, 'Password must be at least 6 characters'),
     role: z.enum(['admin', 'manager', 'sales', 'support']).optional(),
@@ -115,16 +119,10 @@ export const updateUserSchema = z.object({
     userId: z.string().min(1, 'User ID is required'),
   }),
   body: z.object({
-    firstName: z
+     name: z
       .string()
-      .min(1, 'First name cannot be empty')
-      .max(50, 'First name cannot be more than 50 characters')
-      .optional(),
-    lastName: z
-      .string()
-      .min(1, 'Last name cannot be empty')
-      .max(50, 'Last name cannot be more than 50 characters')
-      .optional(),
+      .min(1, 'Name is required')
+      .max(50, 'Name cannot be more than 50 characters'),
     email: z.string().email('Please enter a valid email').optional(),
     password: z.string().min(6, 'Password must be at least 6 characters').optional(),
     role: z.enum(['admin', 'manager', 'employee', 'sales', 'printing operator']).optional(),
