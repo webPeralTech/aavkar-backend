@@ -14,7 +14,7 @@ export const createCustomer = async (req: Request, res: Response): Promise<void>
     await customer.save();
 
     // Populate the assignedTo field
-    // await customer.populate('assignedTo', 'firstName lastName email');
+    // await customer.populate('assignedTo', 'name email');
 
     res.status(201).json({
       statusCode: 201,
@@ -75,8 +75,7 @@ export const getCustomers = async (req: Request, res: Response): Promise<void> =
     // Add search functionality
     if (search) {
       filter.$or = [
-        { firstName: { $regex: search, $options: 'i' } },
-        { lastName: { $regex: search, $options: 'i' } },
+        { name: { $regex: search, $options: 'i' } },
         { email: { $regex: search, $options: 'i' } },
         { company: { $regex: search, $options: 'i' } },
       ];
@@ -88,7 +87,7 @@ export const getCustomers = async (req: Request, res: Response): Promise<void> =
     sortObject[sortBy as string] = sortDirection;
 
     const customers = await customerModel.find(filter)
-      // .populate('assignedTo', 'firstName lastName email')
+      // .populate('assignedTo', 'name email')
       .sort(sortObject)
       .skip(skip)
       .limit(Number(limit));
@@ -193,7 +192,7 @@ export const updateCustomer = async (req: Request, res: Response): Promise<void>
       new: true,
       runValidators: true,
     })
-    // .populate('assignedTo', 'firstName lastName email');
+    // .populate('assignedTo', 'name email');
 
     res.status(200).json({
       statusCode: 200,

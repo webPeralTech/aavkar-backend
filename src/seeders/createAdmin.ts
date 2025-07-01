@@ -26,8 +26,7 @@ const createDefaultAdmin = async (): Promise<void> => {
 
     // Create the admin user (password will be encrypted by the pre-save hook)
     const adminUser = new User({
-      firstName: 'Master',
-      lastName: 'Admin',
+      name: 'Master Admin',
       email: 'admin@crm.com',
       password: 'Admin@123', // Remove manual encryption - let the model handle it
       role: 'admin',

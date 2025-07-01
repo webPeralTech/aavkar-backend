@@ -190,8 +190,7 @@ Structured logging with Pino provides:
 ### User Model
 ```typescript
 {
-  firstName: string;
-  lastName: string;
+  name:string
   email: string; // unique, indexed
   password: string; // hashed
   role: 'admin' | 'manager' | 'sales' | 'support';
@@ -204,8 +203,7 @@ Structured logging with Pino provides:
 ### Customer Model
 ```typescript
 {
-  firstName: string;
-  lastName: string;
+  name: string
   email: string; // unique, indexed
   phone?: string;
   company?: string;
@@ -300,8 +298,7 @@ CMD ["npm", "start"]
 curl -X POST http://localhost:5000/api/auth/register \
   -H "Content-Type: application/json" \
   -d '{
-    "firstName": "John",
-    "lastName": "Doe",
+    "name": "John Doe",
     "email": "john@example.com",
     "password": "password123",
     "role": "sales"
@@ -324,8 +321,7 @@ curl -X POST http://localhost:5000/api/customers \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer YOUR_JWT_TOKEN" \
   -d '{
-    "firstName": "Jane",
-    "lastName": "Smith",
+    "name": "Jane Smith",
     "email": "jane@company.com",
     "company": "ABC Corp",
     "status": "lead",
