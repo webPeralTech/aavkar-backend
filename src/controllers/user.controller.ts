@@ -5,7 +5,7 @@ import { decryptPassword } from '../utils/encryption';
 
 export const register = async (req: Request, res: Response): Promise<void> => {
   try {
-    const { firstName, lastName, email, password, role } = req.body;
+    const { name, email, password, role } = req.body;
 
     // Check if user already exists
     const existingUser = await User.findOne({ email });
@@ -20,8 +20,7 @@ export const register = async (req: Request, res: Response): Promise<void> => {
 
     // Create new user
     const user: IUser = new User({
-      firstName,
-      lastName,
+      name,
       email,
       password,
       role: role || 'Employee',
@@ -43,8 +42,7 @@ export const register = async (req: Request, res: Response): Promise<void> => {
         token,
         user: {
           id: user._id,
-          firstName: user.firstName,
-          lastName: user.lastName,
+          name: user.name,
           email: user.email,
           role: user.role,
           isActive: user.isActive,
