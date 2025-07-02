@@ -42,18 +42,18 @@ export const login = async (req: Request, res: Response): Promise<void> => {
 
     // Compare password
     console.log(`Attempting password comparison for user: ${email}`);
-    // const isPasswordValid = await user.comparePassword(password);
-    // console.log(`Password comparison result: ${isPasswordValid}`);
+    const isPasswordValid = await user.comparePassword(password);
+    console.log(`Password comparison result: ${isPasswordValid}`);
 
-    // if (!isPasswordValid) {
-    //   console.log(`Login attempt failed: Invalid password for email: ${email}`);
-    //   res.status(401).json({ 
-    //     statusCode: 401,
-    //     message: 'Invalid credentials',
-    //     error: 'Invalid credentials'
-    //   });
-    //   return;
-    // }
+    if (!isPasswordValid) {
+      console.log(`Login attempt failed: Invalid password for email: ${email}`);
+      res.status(401).json({ 
+        statusCode: 401,
+        message: 'Invalid credentials',
+        error: 'Invalid credentials'
+      });
+      return;
+    }
 
     // Update last login
     user.lastLogin = new Date();
