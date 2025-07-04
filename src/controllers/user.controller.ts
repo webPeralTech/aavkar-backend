@@ -138,10 +138,12 @@ export const getAll = async (req: Request, res: Response): Promise<void> => {
     
     // Get users with search and pagination (including password field)
     const users = await User.find(searchQuery)
-      // .select('+password') // Include password field for decryption
+      .select('+password') // Include password field for decryption
       .skip(skip)
       .limit(limitNum)
       .sort(sortObj);
+
+    // console.log(users,"users>>><<<<");
     
     // Calculate pagination metadata
     const totalPages = Math.ceil(totalCount / limitNum);
@@ -151,6 +153,7 @@ export const getAll = async (req: Request, res: Response): Promise<void> => {
     // Transform users to include decrypted password
     const usersWithDecryptedPassword = users.map(user => {
       const userObj = user.toObject() as any;
+      // console.log(userObj,"userObj");
       try {
         userObj.password = decryptPassword(user.password);
       } catch (error) {

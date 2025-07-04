@@ -136,10 +136,11 @@ const getAll = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
         const totalCount = yield user_model_1.default.countDocuments(searchQuery);
         // Get users with search and pagination (including password field)
         const users = yield user_model_1.default.find(searchQuery)
-            // .select('+password') // Include password field for decryption
+            .select('+password') // Include password field for decryption
             .skip(skip)
             .limit(limitNum)
             .sort(sortObj);
+        // console.log(users,"users>>><<<<");
         // Calculate pagination metadata
         const totalPages = Math.ceil(totalCount / limitNum);
         const hasNextPage = pageNum < totalPages;
@@ -147,6 +148,7 @@ const getAll = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
         // Transform users to include decrypted password
         const usersWithDecryptedPassword = users.map(user => {
             const userObj = user.toObject();
+            // console.log(userObj,"userObj");
             try {
                 userObj.password = (0, encryption_1.decryptPassword)(user.password);
             }

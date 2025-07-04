@@ -138,7 +138,11 @@ exports.createCustomerSchema = zod_1.z.object({
         email: zod_1.z.string().email('Please enter a valid email'),
         phone: zod_1.z.string().optional(),
         company: zod_1.z.string().max(100, 'Company name cannot be more than 100 characters').optional(),
-        address: zod_1.z.string(),
+        gst_no: zod_1.z.string().max(15, 'GST number cannot be more than 15 characters').optional(),
+        notes: zod_1.z.string().max(1000, 'Notes cannot be more than 1000 characters').optional(),
+        address: zod_1.z.string().optional(),
+        city: zod_1.z.string().optional(),
+        state: zod_1.z.string().optional(),
     }),
 });
 exports.updateCustomerSchema = zod_1.z.object({
@@ -151,7 +155,11 @@ exports.updateCustomerSchema = zod_1.z.object({
         email: zod_1.z.string().email('Please enter a valid email').optional(),
         phone: zod_1.z.string().optional(),
         company: zod_1.z.string().max(100, 'Company name cannot be more than 100 characters').optional(),
-        address: zod_1.z.string(),
+        gst_no: zod_1.z.string().max(15, 'GST number cannot be more than 15 characters').optional(),
+        notes: zod_1.z.string().max(1000, 'Notes cannot be more than 1000 characters').optional(),
+        address: zod_1.z.string().optional(),
+        city: zod_1.z.string().optional(),
+        state: zod_1.z.string().optional(),
     }),
 });
 exports.getCustomersQuerySchema = zod_1.z.object({
@@ -189,7 +197,11 @@ exports.updateCustomerWithIdSchema = zod_1.z.object({
         email: zod_1.z.string().email('Please enter a valid email').optional(),
         phone: zod_1.z.string().optional(),
         company: zod_1.z.string().max(100, 'Company name cannot be more than 100 characters').optional(),
-        address: zod_1.z.string(),
+        gst_no: zod_1.z.string().max(15, 'GST number cannot be more than 15 characters').optional(),
+        notes: zod_1.z.string().max(1000, 'Notes cannot be more than 1000 characters').optional(),
+        address: zod_1.z.string().optional(),
+        city: zod_1.z.string().optional(),
+        state: zod_1.z.string().optional(),
     }),
 });
 // Company validation schemas

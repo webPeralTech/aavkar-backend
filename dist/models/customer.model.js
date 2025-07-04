@@ -71,6 +71,10 @@ const customerSchema = new mongoose_1.Schema({
         type: String,
         trim: true,
     },
+    state: {
+        type: String,
+        trim: true,
+    },
     notes: {
         type: String,
         maxlength: [1000, 'Notes cannot be more than 1000 characters'],

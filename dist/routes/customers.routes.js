@@ -42,23 +42,21 @@ router.use(auth_1.authenticate);
  *               company:
  *                 type: string
  *                 example: Acme Corp
- *               jobTitle:
+ *               gst_no:
  *                 type: string
- *                 example: Software Engineer
- *               status:
+ *                 example: 22AAAAA0000A1Z5
+ *               address:
  *                 type: string
- *                 enum: [lead, prospect, customer, inactive]
- *                 example: lead
- *               source:
+ *                 example: 123 Main Street, Sector 1
+ *               city:
  *                 type: string
- *                 enum: [website, referral, social_media, cold_call, trade_show, other]
- *                 example: website
+ *                 example: Mumbai
+ *               state:
+ *                 type: string
+ *                 example: Maharashtra
  *               notes:
  *                 type: string
  *                 example: Interested in our premium package
- *               dealValue:
- *                 type: number
- *                 example: 5000
  *     responses:
  *       201:
  *         description: Customer created successfully
@@ -238,15 +236,16 @@ router.get('/:id', (0, validation_1.validate)(validation_1.idParamSchema), custo
  *                 type: string
  *               company:
  *                 type: string
- *               jobTitle:
+ *               gst_no:
  *                 type: string
- *               status:
+ *               address:
  *                 type: string
- *                 enum: [lead, prospect, customer, inactive]
+ *               city:
+ *                 type: string
+ *               state:
+ *                 type: string
  *               notes:
  *                 type: string
- *               dealValue:
- *                 type: number
  *     responses:
  *       200:
  *         description: Customer updated successfully
