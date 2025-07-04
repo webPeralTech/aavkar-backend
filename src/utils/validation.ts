@@ -132,7 +132,11 @@ export const createCustomerSchema = z.object({
     email: z.string().email('Please enter a valid email'),
     phone: z.string().optional(),
     company: z.string().max(100, 'Company name cannot be more than 100 characters').optional(),
-    address: z.string(),
+    gst_no: z.string().max(15, 'GST number cannot be more than 15 characters').optional(),
+    notes: z.string().max(1000, 'Notes cannot be more than 1000 characters').optional(),
+    address: z.string().optional(),
+    city: z.string().optional(),
+    state: z.string().optional(),
   }),
 });
 
@@ -146,7 +150,11 @@ export const updateCustomerSchema = z.object({
     email: z.string().email('Please enter a valid email').optional(),
     phone: z.string().optional(),
     company: z.string().max(100, 'Company name cannot be more than 100 characters').optional(),
-    address: z.string(),
+    gst_no: z.string().max(15, 'GST number cannot be more than 15 characters').optional(),
+    notes: z.string().max(1000, 'Notes cannot be more than 1000 characters').optional(),
+    address: z.string().optional(),
+    city: z.string().optional(),
+    state: z.string().optional(),
   }),
 });
 
@@ -187,7 +195,11 @@ export const updateCustomerWithIdSchema = z.object({
     email: z.string().email('Please enter a valid email').optional(),
     phone: z.string().optional(),
     company: z.string().max(100, 'Company name cannot be more than 100 characters').optional(),
-    address: z.string(),
+    gst_no: z.string().max(15, 'GST number cannot be more than 15 characters').optional(),
+    notes: z.string().max(1000, 'Notes cannot be more than 1000 characters').optional(),
+    address: z.string().optional(),
+    city: z.string().optional(),
+    state: z.string().optional(),
   }),
 });
 
