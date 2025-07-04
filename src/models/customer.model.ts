@@ -6,16 +6,10 @@ export interface ICustomer extends Document {
   phone?: string;
   company?: string;
   gst_no?: string;
-  // address?: {
-  //   street?: string;
-  //   city?: string;
-  //   state?: string;
-  //   zipCode?: string;
-  //   country?: string;
-  // };
   notes?: string;
-  city?: string;
   address?: string;
+  city?: string;
+  state?: string;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -55,6 +49,10 @@ const customerSchema = new Schema<ICustomer>(
       trim: true,
     },
     city: {
+      type : String,
+      trim: true,
+    },
+    state: {
       type : String,
       trim: true,
     },
