@@ -336,7 +336,7 @@ const updateUser = (req, res) => __awaiter(void 0, void 0, void 0, function* () 
         if (role !== undefined)
             updateData.role = role;
         // Update the user
-        const updatedUser = yield user_model_1.default.findByIdAndUpdate(userId, updateData, { new: true, select: '-password' });
+        const updatedUser = yield user_model_1.default.findByIdAndUpdate(userId, updateData, { new: true, select: '+password' });
         res.status(200).json({
             statusCode: 200,
             message: 'User updated successfully',
@@ -346,6 +346,7 @@ const updateUser = (req, res) => __awaiter(void 0, void 0, void 0, function* () 
                     name: updatedUser.name,
                     email: updatedUser.email,
                     role: updatedUser.role,
+                    password: (0, encryption_1.decryptPassword)(updatedUser.password),
                     isActive: updatedUser.isActive,
                     lastLogin: updatedUser.lastLogin,
                     createdAt: updatedUser.createdAt,
