@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
 import User, { IUser } from '../models/user.model';
 import { generateToken } from '../utils/jwt';
-import { decryptPassword } from '../utils/encryption';
+import { decryptPassword, encryptPassword } from '../utils/encryption';
 
 export const register = async (req: Request, res: Response): Promise<void> => {
   try {
@@ -143,7 +143,7 @@ export const getAll = async (req: Request, res: Response): Promise<void> => {
       .limit(limitNum)
       .sort(sortObj);
 
-    // console.log(users,"users>>><<<<");
+    console.log(users,"users>>><<<<");
     
     // Calculate pagination metadata
     const totalPages = Math.ceil(totalCount / limitNum);
@@ -347,7 +347,7 @@ export const updateUser = async (req: Request, res: Response): Promise<void> => 
     const updateData: any = {};
     if (name !== undefined) updateData.name = name;
     if (email !== undefined) updateData.email = email;
-    if (password !== undefined) updateData.password = password;
+    if (password !== undefined) updateData.password = encryptPassword(password);
     if (role !== undefined) updateData.role = role;
 
     // Update the user
@@ -356,6 +356,8 @@ export const updateUser = async (req: Request, res: Response): Promise<void> => 
       updateData,
       { new: true, select: '+password' }
     );
+
+    console.log(updatedUser,"updatedUser");
 
     res.status(200).json({
       statusCode: 200,

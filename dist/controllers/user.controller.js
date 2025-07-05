@@ -140,7 +140,7 @@ const getAll = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
             .skip(skip)
             .limit(limitNum)
             .sort(sortObj);
-        // console.log(users,"users>>><<<<");
+        console.log(users, "users>>><<<<");
         // Calculate pagination metadata
         const totalPages = Math.ceil(totalCount / limitNum);
         const hasNextPage = pageNum < totalPages;
@@ -332,11 +332,12 @@ const updateUser = (req, res) => __awaiter(void 0, void 0, void 0, function* () 
         if (email !== undefined)
             updateData.email = email;
         if (password !== undefined)
-            updateData.password = password;
+            updateData.password = (0, encryption_1.encryptPassword)(password);
         if (role !== undefined)
             updateData.role = role;
         // Update the user
         const updatedUser = yield user_model_1.default.findByIdAndUpdate(userId, updateData, { new: true, select: '+password' });
+        console.log(updatedUser, "updatedUser");
         res.status(200).json({
             statusCode: 200,
             message: 'User updated successfully',
