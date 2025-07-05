@@ -354,7 +354,7 @@ export const updateUser = async (req: Request, res: Response): Promise<void> => 
     const updatedUser = await User.findByIdAndUpdate(
       userId,
       updateData,
-      { new: true, } // select: '-password'
+      { new: true, select: '+password' }
     );
 
     res.status(200).json({
@@ -366,6 +366,7 @@ export const updateUser = async (req: Request, res: Response): Promise<void> => 
           name: updatedUser!.name,
           email: updatedUser!.email,
           role: updatedUser!.role,
+          password: decryptPassword(updatedUser!.password),
           isActive: updatedUser!.isActive,
           lastLogin: updatedUser!.lastLogin,
           createdAt: updatedUser!.createdAt,
