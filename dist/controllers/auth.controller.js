@@ -15,6 +15,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.changePassword = exports.login = void 0;
 const user_model_1 = __importDefault(require("../models/user.model"));
 const jwt_1 = require("../utils/jwt");
+const encryption_1 = require("../utils/encryption");
 const login = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const { email, password } = req.body;
@@ -50,17 +51,17 @@ const login = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
         }
         // Compare password
         console.log(`Attempting password comparison for user: ${email}`);
-        // const isPasswordValid = await user.comparePassword(password);
-        // console.log(`Password comparison result: ${isPasswordValid}`);
-        // if (!isPasswordValid) {
-        //   console.log(`Login attempt failed: Invalid password for email: ${email}`);
-        //   res.status(401).json({ 
-        //     statusCode: 401,
-        //     message: 'Invalid credentials',
-        //     error: 'Invalid credentials'
-        //   });
-        //   return;
-        // }
+        const isPasswordValid = yield (0, encryption_1.comparePassword)(password, user.password);
+        console.log(`Password comparison result: ${isPasswordValid}`);
+        if (!isPasswordValid) {
+            console.log(`Login attempt failed: Invalid password for email: ${email}`);
+            res.status(401).json({
+                statusCode: 401,
+                message: 'Invalid credentials',
+                error: 'Invalid credentials'
+            });
+            return;
+        }
         // Update last login
         user.lastLogin = new Date();
         yield user.save();
