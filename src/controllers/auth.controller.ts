@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import User from '../models/user.model';
 import { generateToken } from '../utils/jwt';
+import { comparePassword } from '../utils/encryption';
 
 export const login = async (req: Request, res: Response): Promise<void> => {
   try {
@@ -42,7 +43,7 @@ export const login = async (req: Request, res: Response): Promise<void> => {
 
     // Compare password
     console.log(`Attempting password comparison for user: ${email}`);
-    const isPasswordValid = await user.comparePassword(password);
+    const isPasswordValid = await comparePassword(password, user.password);
     console.log(`Password comparison result: ${isPasswordValid}`);
 
     if (!isPasswordValid) {

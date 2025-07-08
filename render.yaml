@@ -6,4 +6,6 @@ services:
     startCommand: npm start
     envVars:
       - key: NODE_ENV
-        value: production 
+        value: production
+      - key: BASE_URL
+        value: https://aavkar-backend.onrender.com 
