@@ -34,26 +34,9 @@ app.use(logger_1.requestLogger);
 //     credentials: true,
 //   })
 // );
-const allowedOrigins = [
-    process.env.CLIENT_URL,
-    'http://localhost:3000',
-    'http://localhost:5173',
-    'https://aavkar-frontend.vercel.app',
-    'https://aavkar-backend.onrender.com',
-].filter(Boolean);
+// CORS configuration - Allow all origins
 app.use((0, cors_1.default)({
-    origin: function (origin, callback) {
-        // Allow requests with no origin (like mobile apps, Postman, curl)
-        if (!origin)
-            return callback(null, true);
-        // Check if origin is in allowed list
-        if (allowedOrigins.includes(origin)) {
-            return callback(null, true);
-        }
-        // Log blocked origin for debugging
-        logger_2.default.warn(`Blocked by CORS: ${origin}`);
-        return callback(new Error(`The CORS policy for this site does not allow access from the specified Origin: ${origin}`), false);
-    },
+    origin: true, // Allow all origins
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
     allowedHeaders: [
