@@ -109,7 +109,7 @@ const processProductImage = (req, res, next) => __awaiter(void 0, void 0, void 0
             .webp({ quality: 80 })
             .toFile(filepath);
         // Generate URL for the uploaded image
-        const baseUrl = process.env.BASE_URL || `http://localhost:${process.env.PORT || 5000}`;
+        const baseUrl = process.env.NODE_ENV === 'production' ? "https://aavkar-backend.onrender.com" : process.env.BASE_URL || `http://localhost:${process.env.PORT || 5000}`;
         const photoUrl = `${baseUrl}/uploads/products/${filename}`;
         // Add photoUrl to request body
         req.body.photoUrl = photoUrl;
@@ -143,7 +143,7 @@ const processCompanyLogo = (req, res, next) => __awaiter(void 0, void 0, void 0,
             .webp({ quality: 90 }) // Higher quality for logos
             .toFile(filepath);
         // Generate URL for the uploaded logo
-        const baseUrl = process.env.BASE_URL || `http://localhost:${process.env.PORT || 5000}`;
+        const baseUrl = process.env.NODE_ENV === 'production' ? "https://aavkar-backend.onrender.com" : process.env.BASE_URL || `http://localhost:${process.env.PORT || 5000}`;
         const logoUrl = `${baseUrl}/uploads/companies/${filename}`;
         // Add company_logo to request body
         req.body.company_logo = logoUrl;
