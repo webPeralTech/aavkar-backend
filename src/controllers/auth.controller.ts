@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import User from '../models/user.model';
 import { generateToken } from '../utils/jwt';
 import { comparePassword } from '../utils/encryption';
+import { Company } from '../models/company.model';
 
 export const login = async (req: Request, res: Response): Promise<void> => {
   try {
@@ -60,6 +61,10 @@ export const login = async (req: Request, res: Response): Promise<void> => {
     user.lastLogin = new Date();
     await user.save();
 
+    // company table image url send response
+    const company = await Company.find({});
+    const companyImage = company.map((company) => company.company_logo);
+
     // Generate token
     const token = generateToken({
       userId: (user._id as any).toString(),
@@ -78,6 +83,7 @@ export const login = async (req: Request, res: Response): Promise<void> => {
           role: user.role,
           isActive: user.isActive,
           lastLogin: user.lastLogin,
+          companyImage: companyImage[0],
         },
       },
     });

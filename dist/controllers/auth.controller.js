@@ -16,6 +16,7 @@ exports.changePassword = exports.login = void 0;
 const user_model_1 = __importDefault(require("../models/user.model"));
 const jwt_1 = require("../utils/jwt");
 const encryption_1 = require("../utils/encryption");
+const company_model_1 = require("../models/company.model");
 const login = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const { email, password } = req.body;
@@ -65,6 +66,9 @@ const login = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
         // Update last login
         user.lastLogin = new Date();
         yield user.save();
+        // company table image url send response
+        const company = yield company_model_1.Company.find({});
+        const companyImage = company.map((company) => company.company_logo);
         // Generate token
         const token = (0, jwt_1.generateToken)({
             userId: user._id.toString(),
@@ -83,6 +87,7 @@ const login = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
                     role: user.role,
                     isActive: user.isActive,
                     lastLogin: user.lastLogin,
+                    companyImage: companyImage[0],
                 },
             },
         });

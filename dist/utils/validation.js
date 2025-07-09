@@ -9,7 +9,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.updateProductWithIdSchema = exports.getProductsQuerySchema = exports.updateProductWithFileSchema = exports.updateProductSchema = exports.createProductWithFileSchema = exports.createProductSchema = exports.updateCompanyWithFileSchema = exports.createCompanyWithFileSchema = exports.companyIdParamSchema = exports.updateCompanySchema = exports.createCompanySchema = exports.updateCustomerWithIdSchema = exports.idParamSchema = exports.getCustomersQuerySchema = exports.updateCustomerSchema = exports.createCustomerSchema = exports.updateUserSchema = exports.changePasswordSchema = exports.loginSchema = exports.registerSchema = exports.validateParams = exports.validateRequest = exports.validate = void 0;
+exports.invoiceIdParamSchema = exports.paymentStatsQuerySchema = exports.updatePaymentWithIdSchema = exports.getPaymentsQuerySchema = exports.updatePaymentSchema = exports.createPaymentSchema = exports.createBulkProductsSchema = exports.updateProductWithIdSchema = exports.getProductsQuerySchema = exports.updateProductWithFileSchema = exports.updateProductSchema = exports.createProductWithFileSchema = exports.createProductSchema = exports.updateCompanyWithFileSchema = exports.createCompanyWithFileSchema = exports.companyIdParamSchema = exports.updateCompanySchema = exports.createCompanySchema = exports.updateCustomerWithIdSchema = exports.idParamSchema = exports.getCustomersQuerySchema = exports.updateCustomerSchema = exports.createCustomerSchema = exports.updateUserSchema = exports.changePasswordSchema = exports.loginSchema = exports.registerSchema = exports.validateParams = exports.validateRequest = exports.validate = void 0;
 const zod_1 = require("zod");
 // Validation middleware functions
 const validate = (schema) => {
@@ -449,106 +449,124 @@ exports.updateCompanyWithFileSchema = zod_1.z.object({
 // Product validation schemas
 exports.createProductSchema = zod_1.z.object({
     body: zod_1.z.object({
-        name: zod_1.z
+        ps_name: zod_1.z
             .string()
-            .min(1, 'Product name is required')
-            .max(100, 'Product name cannot be more than 100 characters'),
-        type: zod_1.z
+            .min(1, 'Product/Service name is required')
+            .max(100, 'Product/Service name cannot be more than 100 characters'),
+        ps_type: zod_1.z
             .enum(['product', 'service'], {
             errorMap: () => ({ message: 'Type must be either product or service' })
         })
             .default('service'),
-        unit: zod_1.z
+        ps_unit: zod_1.z
             .string()
             .max(20, 'Unit cannot be more than 20 characters')
             .optional(),
-        code: zod_1.z
-            .string()
-            .max(50, 'Code cannot be more than 50 characters')
+        ps_tax: zod_1.z
+            .number()
+            .refine(val => [0, 5, 12, 18, 28].includes(val), 'Tax must be one of: 0, 5, 12, 18, 28')
+            .default(0)
             .optional(),
-        photoUrl: zod_1.z
+        ps_hsn_code: zod_1.z
             .string()
-            .url('Photo URL must be a valid URL')
+            .max(50, 'HSN/Service code cannot be more than 50 characters')
+            .optional(),
+        ps_code: zod_1.z
+            .string()
+            .max(50, 'Product code cannot be more than 50 characters')
+            .optional(),
+        printing_operator_code: zod_1.z
+            .string()
+            .max(50, 'Printing operator code cannot be more than 50 characters')
+            .optional(),
+        ps_photo: zod_1.z
+            .string()
             .optional(), // This will be set automatically by upload middleware
-        baseCost: zod_1.z
+        ps_base_cost: zod_1.z
             .number()
             .min(0, 'Base cost cannot be negative')
             .optional(),
-        description: zod_1.z
-            .string()
-            .max(500, 'Description cannot be more than 500 characters')
-            .optional(),
-        isActive: zod_1.z.boolean().default(true).optional(),
     }),
 });
-// Schema for file upload (without photoUrl validation since it's auto-generated)
+// Schema for file upload (multipart form data)
 exports.createProductWithFileSchema = zod_1.z.object({
     body: zod_1.z.object({
-        name: zod_1.z
+        ps_name: zod_1.z
             .string()
-            .min(1, 'Product name is required')
-            .max(100, 'Product name cannot be more than 100 characters'),
-        type: zod_1.z
+            .min(1, 'Product/Service name is required')
+            .max(100, 'Product/Service name cannot be more than 100 characters'),
+        ps_type: zod_1.z
             .enum(['product', 'service'], {
             errorMap: () => ({ message: 'Type must be either product or service' })
         })
             .default('service'),
-        unit: zod_1.z
+        ps_unit: zod_1.z
             .string()
             .max(20, 'Unit cannot be more than 20 characters')
             .optional(),
-        code: zod_1.z
+        ps_tax: zod_1.z
             .string()
-            .max(50, 'Code cannot be more than 50 characters')
+            .optional()
+            .transform(val => val ? parseInt(val) : 0)
+            .refine(val => [0, 5, 12, 18, 28].includes(val), 'Tax must be one of: 0, 5, 12, 18, 28'),
+        ps_hsn_code: zod_1.z
+            .string()
+            .max(50, 'HSN/Service code cannot be more than 50 characters')
             .optional(),
-        baseCost: zod_1.z
+        ps_code: zod_1.z
+            .string()
+            .max(50, 'Product code cannot be more than 50 characters')
+            .optional(),
+        printing_operator_code: zod_1.z
+            .string()
+            .max(50, 'Printing operator code cannot be more than 50 characters')
+            .optional(),
+        ps_base_cost: zod_1.z
             .string()
             .optional()
             .transform(val => val ? parseFloat(val) : undefined)
             .refine(val => val === undefined || val >= 0, 'Base cost cannot be negative'),
-        description: zod_1.z
-            .string()
-            .max(500, 'Description cannot be more than 500 characters')
-            .optional(),
-        isActive: zod_1.z
-            .string()
-            .optional()
-            .transform(val => val === 'true' ? true : val === 'false' ? false : undefined),
     }),
 });
 exports.updateProductSchema = zod_1.z.object({
     body: zod_1.z.object({
-        name: zod_1.z
+        ps_name: zod_1.z
             .string()
-            .min(1, 'Product name is required')
-            .max(100, 'Product name cannot be more than 100 characters')
+            .min(1, 'Product/Service name is required')
+            .max(100, 'Product/Service name cannot be more than 100 characters')
             .optional(),
-        type: zod_1.z
+        ps_type: zod_1.z
             .enum(['product', 'service'], {
             errorMap: () => ({ message: 'Type must be either product or service' })
         })
             .optional(),
-        unit: zod_1.z
+        ps_unit: zod_1.z
             .string()
             .max(20, 'Unit cannot be more than 20 characters')
             .optional(),
-        code: zod_1.z
-            .string()
-            .max(50, 'Code cannot be more than 50 characters')
+        ps_tax: zod_1.z
+            .number()
+            .refine(val => [0, 5, 12, 18, 28].includes(val), 'Tax must be one of: 0, 5, 12, 18, 28')
             .optional(),
-        photoUrl: zod_1.z
+        ps_hsn_code: zod_1.z
             .string()
-            .url('Photo URL must be a valid URL')
+            .max(50, 'HSN/Service code cannot be more than 50 characters')
             .optional(),
-        baseCost: zod_1.z
+        ps_code: zod_1.z
+            .string()
+            .max(50, 'Product code cannot be more than 50 characters')
+            .optional(),
+        printing_operator_code: zod_1.z
+            .string()
+            .max(50, 'Printing operator code cannot be more than 50 characters')
+            .optional(),
+        ps_photo: zod_1.z
+            .string()
+            .optional(),
+        ps_base_cost: zod_1.z
             .number()
             .min(0, 'Base cost cannot be negative')
             .optional(),
-        description: zod_1.z
-            .string()
-            .max(500, 'Description cannot be more than 500 characters')
-            .optional(),
-        isActive: zod_1.z.boolean().optional(),
     }),
 });
 // Schema for updating product with file upload
@@ -557,37 +575,42 @@ exports.updateProductWithFileSchema = zod_1.z.object({
         id: zod_1.z.string().min(1, 'ID is required'),
     }),
     body: zod_1.z.object({
-        name: zod_1.z
+        ps_name: zod_1.z
             .string()
-            .min(1, 'Product name is required')
-            .max(100, 'Product name cannot be more than 100 characters')
+            .min(1, 'Product/Service name is required')
+            .max(100, 'Product/Service name cannot be more than 100 characters')
             .optional(),
-        type: zod_1.z
+        ps_type: zod_1.z
             .enum(['product', 'service'], {
             errorMap: () => ({ message: 'Type must be either product or service' })
         })
             .optional(),
-        unit: zod_1.z
+        ps_unit: zod_1.z
             .string()
             .max(20, 'Unit cannot be more than 20 characters')
             .optional(),
-        code: zod_1.z
+        ps_tax: zod_1.z
             .string()
-            .max(50, 'Code cannot be more than 50 characters')
+            .optional()
+            .transform(val => val ? parseInt(val) : undefined)
+            .refine(val => val === undefined || [0, 5, 12, 18, 28].includes(val), 'Tax must be one of: 0, 5, 12, 18, 28'),
+        ps_hsn_code: zod_1.z
+            .string()
+            .max(50, 'HSN/Service code cannot be more than 50 characters')
             .optional(),
-        baseCost: zod_1.z
+        ps_code: zod_1.z
+            .string()
+            .max(50, 'Product code cannot be more than 50 characters')
+            .optional(),
+        printing_operator_code: zod_1.z
+            .string()
+            .max(50, 'Printing operator code cannot be more than 50 characters')
+            .optional(),
+        ps_base_cost: zod_1.z
             .string()
             .optional()
             .transform(val => val ? parseFloat(val) : undefined)
             .refine(val => val === undefined || val >= 0, 'Base cost cannot be negative'),
-        description: zod_1.z
-            .string()
-            .max(500, 'Description cannot be more than 500 characters')
-            .optional(),
-        isActive: zod_1.z
-            .string()
-            .optional()
-            .transform(val => val === 'true' ? true : val === 'false' ? false : undefined),
     }),
 });
 exports.getProductsQuerySchema = zod_1.z.object({
@@ -600,11 +623,12 @@ exports.getProductsQuerySchema = zod_1.z.object({
             .string()
             .optional()
             .transform(val => (val ? parseInt(val) : 10)),
-        type: zod_1.z.enum(['product', 'service']).optional(),
-        isActive: zod_1.z
+        ps_type: zod_1.z.enum(['product', 'service']).optional(),
+        ps_tax: zod_1.z
             .string()
             .optional()
-            .transform(val => val === 'true' ? true : val === 'false' ? false : undefined),
+            .transform(val => val ? parseInt(val) : undefined)
+            .refine(val => val === undefined || [0, 5, 12, 18, 28].includes(val), 'Tax must be one of: 0, 5, 12, 18, 28'),
         search: zod_1.z.string().optional(),
         sortBy: zod_1.z.string().optional(),
         sortOrder: zod_1.z.enum(['asc', 'desc']).optional(),
@@ -616,36 +640,219 @@ exports.updateProductWithIdSchema = zod_1.z.object({
         id: zod_1.z.string().min(1, 'ID is required'),
     }),
     body: zod_1.z.object({
-        name: zod_1.z
+        ps_name: zod_1.z
             .string()
-            .min(1, 'Product name is required')
-            .max(100, 'Product name cannot be more than 100 characters')
+            .min(1, 'Product/Service name is required')
+            .max(100, 'Product/Service name cannot be more than 100 characters')
             .optional(),
-        type: zod_1.z
+        ps_type: zod_1.z
             .enum(['product', 'service'], {
             errorMap: () => ({ message: 'Type must be either product or service' })
         })
             .optional(),
-        unit: zod_1.z
+        ps_unit: zod_1.z
             .string()
             .max(20, 'Unit cannot be more than 20 characters')
             .optional(),
-        code: zod_1.z
-            .string()
-            .max(50, 'Code cannot be more than 50 characters')
+        ps_tax: zod_1.z
+            .number()
+            .refine(val => [0, 5, 12, 18, 28].includes(val), 'Tax must be one of: 0, 5, 12, 18, 28')
             .optional(),
-        photoUrl: zod_1.z
+        ps_hsn_code: zod_1.z
             .string()
-            .url('Photo URL must be a valid URL')
+            .max(50, 'HSN/Service code cannot be more than 50 characters')
             .optional(),
-        baseCost: zod_1.z
+        ps_code: zod_1.z
+            .string()
+            .max(50, 'Product code cannot be more than 50 characters')
+            .optional(),
+        printing_operator_code: zod_1.z
+            .string()
+            .max(50, 'Printing operator code cannot be more than 50 characters')
+            .optional(),
+        ps_photo: zod_1.z
+            .string()
+            .optional(),
+        ps_base_cost: zod_1.z
             .number()
             .min(0, 'Base cost cannot be negative')
             .optional(),
-        description: zod_1.z
+    }),
+});
+// Bulk create schema
+exports.createBulkProductsSchema = zod_1.z.object({
+    body: zod_1.z.object({
+        products: zod_1.z.array(zod_1.z.object({
+            ps_name: zod_1.z
+                .string()
+                .min(1, 'Product/Service name is required')
+                .max(100, 'Product/Service name cannot be more than 100 characters'),
+            ps_type: zod_1.z
+                .enum(['product', 'service'])
+                .default('service'),
+            ps_unit: zod_1.z
+                .string()
+                .max(20, 'Unit cannot be more than 20 characters')
+                .optional(),
+            ps_tax: zod_1.z
+                .number()
+                .refine(val => [0, 5, 12, 18, 28].includes(val), 'Tax must be one of: 0, 5, 12, 18, 28')
+                .default(0)
+                .optional(),
+            ps_hsn_code: zod_1.z
+                .string()
+                .max(50, 'HSN/Service code cannot be more than 50 characters')
+                .optional(),
+            ps_code: zod_1.z
+                .string()
+                .max(50, 'Product code cannot be more than 50 characters')
+                .optional(),
+            printing_operator_code: zod_1.z
+                .string()
+                .max(50, 'Printing operator code cannot be more than 50 characters')
+                .optional(),
+            ps_base_cost: zod_1.z
+                .number()
+                .min(0, 'Base cost cannot be negative')
+                .optional(),
+        })).min(1, 'At least one product is required'),
+    }),
+});
+// Payment validation schemas
+exports.createPaymentSchema = zod_1.z.object({
+    body: zod_1.z.object({
+        p_type: zod_1.z
+            .enum(['cash', 'cheque', 'UPI'], {
+            errorMap: () => ({ message: 'Payment type must be one of: cash, cheque, UPI' })
+        }),
+        invoice_id: zod_1.z
             .string()
-            .max(500, 'Description cannot be more than 500 characters')
+            .min(1, 'Invoice ID is required')
+            .max(100, 'Invoice ID cannot be more than 100 characters')
+            .trim(),
+        date_time: zod_1.z
+            .string()
+            .refine(val => !isNaN(Date.parse(val)), 'Invalid date format')
+            .transform(val => new Date(val))
+            .refine(val => val <= new Date(), 'Payment date cannot be in the future'),
+        amount: zod_1.z
+            .number()
+            .min(0.01, 'Payment amount must be greater than 0')
+            .refine(val => {
+            // Check if amount has at most 2 decimal places
+            return /^\d+(\.\d{1,2})?$/.test(val.toString());
+        }, 'Payment amount can have at most 2 decimal places'),
+    }),
+});
+exports.updatePaymentSchema = zod_1.z.object({
+    body: zod_1.z.object({
+        p_type: zod_1.z
+            .enum(['cash', 'cheque', 'UPI'], {
+            errorMap: () => ({ message: 'Payment type must be one of: cash, cheque, UPI' })
+        })
             .optional(),
-        isActive: zod_1.z.boolean().optional(),
+        invoice_id: zod_1.z
+            .string()
+            .min(1, 'Invoice ID cannot be empty')
+            .max(100, 'Invoice ID cannot be more than 100 characters')
+            .trim()
+            .optional(),
+        date_time: zod_1.z
+            .string()
+            .refine(val => !isNaN(Date.parse(val)), 'Invalid date format')
+            .transform(val => new Date(val))
+            .refine(val => val <= new Date(), 'Payment date cannot be in the future')
+            .optional(),
+        amount: zod_1.z
+            .number()
+            .min(0.01, 'Payment amount must be greater than 0')
+            .refine(val => {
+            // Check if amount has at most 2 decimal places
+            return /^\d+(\.\d{1,2})?$/.test(val.toString());
+        }, 'Payment amount can have at most 2 decimal places')
+            .optional(),
+    }),
+});
+exports.getPaymentsQuerySchema = zod_1.z.object({
+    query: zod_1.z.object({
+        page: zod_1.z
+            .string()
+            .optional()
+            .transform(val => (val ? parseInt(val) : 1)),
+        limit: zod_1.z
+            .string()
+            .optional()
+            .transform(val => (val ? parseInt(val) : 10)),
+        p_type: zod_1.z.enum(['cash', 'cheque', 'UPI']).optional(),
+        invoice_id: zod_1.z.string().optional(),
+        start_date: zod_1.z
+            .string()
+            .optional()
+            .refine(val => !val || !isNaN(Date.parse(val)), 'Invalid start_date format'),
+        end_date: zod_1.z
+            .string()
+            .optional()
+            .refine(val => !val || !isNaN(Date.parse(val)), 'Invalid end_date format'),
+        min_amount: zod_1.z
+            .string()
+            .optional()
+            .transform(val => val ? parseFloat(val) : undefined)
+            .refine(val => val === undefined || val >= 0, 'Minimum amount must be non-negative'),
+        max_amount: zod_1.z
+            .string()
+            .optional()
+            .transform(val => val ? parseFloat(val) : undefined)
+            .refine(val => val === undefined || val >= 0, 'Maximum amount must be non-negative'),
+        sortBy: zod_1.z.string().optional(),
+        sortOrder: zod_1.z.enum(['asc', 'desc']).optional(),
+    }),
+});
+exports.updatePaymentWithIdSchema = zod_1.z.object({
+    params: zod_1.z.object({
+        id: zod_1.z.string().min(1, 'Payment ID is required'),
+    }),
+    body: zod_1.z.object({
+        p_type: zod_1.z
+            .enum(['cash', 'cheque', 'UPI'], {
+            errorMap: () => ({ message: 'Payment type must be one of: cash, cheque, UPI' })
+        })
+            .optional(),
+        invoice_id: zod_1.z
+            .string()
+            .min(1, 'Invoice ID cannot be empty')
+            .max(100, 'Invoice ID cannot be more than 100 characters')
+            .trim()
+            .optional(),
+        date_time: zod_1.z
+            .string()
+            .refine(val => !isNaN(Date.parse(val)), 'Invalid date format')
+            .transform(val => new Date(val))
+            .refine(val => val <= new Date(), 'Payment date cannot be in the future')
+            .optional(),
+        amount: zod_1.z
+            .number()
+            .min(0.01, 'Payment amount must be greater than 0')
+            .refine(val => {
+            // Check if amount has at most 2 decimal places
+            return /^\d+(\.\d{1,2})?$/.test(val.toString());
+        }, 'Payment amount can have at most 2 decimal places')
+            .optional(),
+    }),
+});
+exports.paymentStatsQuerySchema = zod_1.z.object({
+    query: zod_1.z.object({
+        start_date: zod_1.z
+            .string()
+            .optional()
+            .refine(val => !val || !isNaN(Date.parse(val)), 'Invalid start_date format'),
+        end_date: zod_1.z
+            .string()
+            .optional()
+            .refine(val => !val || !isNaN(Date.parse(val)), 'Invalid end_date format'),
+    }),
+});
+exports.invoiceIdParamSchema = zod_1.z.object({
+    params: zod_1.z.object({
+        invoiceId: zod_1.z.string().min(1, 'Invoice ID is required'),
     }),
 });
