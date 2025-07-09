@@ -10,6 +10,7 @@ const customers_routes_1 = __importDefault(require("./customers.routes"));
 const company_routes_1 = __importDefault(require("./company.routes"));
 const location_routes_1 = __importDefault(require("./location.routes"));
 const products_routes_1 = __importDefault(require("./products.routes"));
+const payment_routes_1 = __importDefault(require("./payment.routes"));
 const router = express_1.default.Router();
 // Mount all routes
 router.use('/auth', auth_routes_1.default);
@@ -18,4 +19,5 @@ router.use('/customers', customers_routes_1.default);
 router.use('/companies', company_routes_1.default);
 router.use('/locations', location_routes_1.default);
 router.use('/products', products_routes_1.default);
+router.use('/payments', payment_routes_1.default);
 exports.default = router;

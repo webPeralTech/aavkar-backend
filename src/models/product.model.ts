@@ -1,83 +1,123 @@
 import mongoose, { Document, Schema } from 'mongoose';
 
 export interface IProduct extends Document {
-  name: string;
-  type: 'product' | 'service';
-  unit?: string;
-  code?: string;
-  photoUrl?: string;
-  baseCost?: number;
-  description?: string;
-  isActive: boolean;
+  ps_name: string;
+  ps_type: 'product' | 'service';
+  ps_unit?: string;
+  ps_tax?: number;
+  ps_hsn_code?: string;
+  ps_code?: string;
+  printing_operator_code?: string;
+  ps_photo?: string;
+  ps_base_cost?: number;
   createdAt: Date;
   updatedAt: Date;
 }
 
 const productSchema = new Schema<IProduct>(
   {
-    name: {
+    ps_name: {
       type: String,
-      required: [true, 'Product name is required'],
+      required: [true, 'Product/Service name is required'],
       trim: true,
-      maxlength: [100, 'Product name cannot be more than 100 characters'],
+      maxlength: [100, 'Product/Service name cannot be more than 100 characters'],
+      index: true,
     },
-    type: {
+    ps_type: {
       type: String,
       enum: {
         values: ['product', 'service'],
         message: 'Type must be either product or service'
       },
       default: 'service',
-      required: [true, 'Product type is required'],
+      required: [true, 'Product/Service type is required'],
+      index: true,
     },
-    unit: {
+    ps_unit: {
       type: String,
       trim: true,
       maxlength: [20, 'Unit cannot be more than 20 characters'],
     },
-    code: {
+    ps_tax: {
+      type: Number,
+      enum: {
+        values: [0, 5, 12, 18, 28],
+        message: 'Tax must be one of: 0, 5, 12, 18, 28'
+      },
+      default: 0,
+    },
+    ps_hsn_code: {
       type: String,
       trim: true,
-      maxlength: [50, 'Code cannot be more than 50 characters'],
+      maxlength: [50, 'HSN/Service code cannot be more than 50 characters'],
+      index: true, // Allow duplicates but index for faster search
     },
-    photoUrl: {
+    ps_code: {
+      type: String,
+      trim: true,
+      unique: true,
+      sparse: true, // Allows null/undefined values but ensures uniqueness when present
+      maxlength: [50, 'Product code cannot be more than 50 characters'],
+      validate: {
+        validator: function(v: string) {
+          return !v || v.length > 0; // If provided, must not be empty string
+        },
+        message: 'Product code cannot be empty'
+      },
+    },
+    printing_operator_code: {
+      type: String,
+      trim: true,
+      maxlength: [50, 'Printing operator code cannot be more than 50 characters'],
+    },
+    ps_photo: {
       type: String,
       trim: true,
       validate: {
         validator: function(v: string) {
           if (!v) return true; // Optional field
-          // Basic URL validation
-          return /^https?:\/\/.+/.test(v);
+          // Basic URL validation or local file path
+          return /^(https?:\/\/.+|\/uploads\/.+)/.test(v);
         },
-        message: 'Photo URL must be a valid URL'
+        message: 'Photo must be a valid URL or file path'
       },
     },
-    baseCost: {
+    ps_base_cost: {
       type: Number,
       min: [0, 'Base cost cannot be negative'],
+      validate: {
+        validator: function(v: number) {
+          return v === undefined || v === null || v >= 0;
     },
-    description: {
-      type: String,
-      trim: true,
-      maxlength: [500, 'Description cannot be more than 500 characters'],
+        message: 'Base cost must be a positive number'
     },
-    isActive: {
-      type: Boolean,
-      default: true,
     },
   },
   {
     timestamps: true,
+    // Ensure proper indexing for common queries
   }
 );
 
-// Create indexes for better query performance
-productSchema.index({ name: 1 });
-productSchema.index({ code: 1 });
-productSchema.index({ type: 1 });
-productSchema.index({ isActive: 1 });
+// Create compound indexes for better query performance
+productSchema.index({ ps_type: 1, ps_name: 1 });
+productSchema.index({ ps_type: 1, ps_tax: 1 });
 
-// Compound index for common queries
-productSchema.index({ type: 1, isActive: 1 });
+// Pre-save middleware to ensure ps_code uniqueness only when provided
+productSchema.pre('save', async function(next) {
+  if (this.ps_code === '') {
+    this.ps_code = undefined;
+  }
+  next();
+});
+
+// Virtual for full product identification
+productSchema.virtual('fullIdentifier').get(function() {
+  return this.ps_code ? `${this.ps_name} (${this.ps_code})` : this.ps_name;
+});
+
+// Ensure virtuals are included in JSON output
+productSchema.set('toJSON', { virtuals: true });
+productSchema.set('toObject', { virtuals: true });
 
 export default mongoose.model<IProduct>('Product', productSchema); 

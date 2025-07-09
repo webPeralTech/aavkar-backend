@@ -49,7 +49,7 @@ const upload = (0, multer_1.default)({
     },
 });
 // Middleware to handle single image upload for products
-exports.uploadProductImage = upload.single('photo');
+exports.uploadProductImage = upload.single('ps_photo');
 // Middleware to handle form-data with optional logo upload for companies
 const uploadCompanyLogo = (req, res, next) => {
     // Configure multer to handle all form-data fields
@@ -111,8 +111,8 @@ const processProductImage = (req, res, next) => __awaiter(void 0, void 0, void 0
         // Generate URL for the uploaded image
         const baseUrl = process.env.NODE_ENV === 'production' ? "https://aavkar-backend.onrender.com" : process.env.BASE_URL || `http://localhost:${process.env.PORT || 5000}`;
         const photoUrl = `${baseUrl}/uploads/products/${filename}`;
-        // Add photoUrl to request body
-        req.body.photoUrl = photoUrl;
+        // Add ps_photo to request body
+        req.body.ps_photo = photoUrl;
         next();
     }
     catch (error) {
