@@ -107,7 +107,7 @@ export const processProductImage = async (req: Request, res: Response, next: Nex
       .toFile(filepath);
 
     // Generate URL for the uploaded image
-    const baseUrl = process.env.BASE_URL || `http://localhost:${process.env.PORT || 5000}`;
+    const baseUrl = process.env.NODE_ENV === 'production' ? "https://aavkar-backend.onrender.com" : process.env.BASE_URL || `http://localhost:${process.env.PORT || 5000}`;
     const photoUrl = `${baseUrl}/uploads/products/${filename}`;
 
     // Add photoUrl to request body
@@ -145,7 +145,7 @@ export const processCompanyLogo = async (req: Request, res: Response, next: Next
       .toFile(filepath);
 
     // Generate URL for the uploaded logo
-    const baseUrl = process.env.BASE_URL || `http://localhost:${process.env.PORT || 5000}`;
+    const baseUrl = process.env.NODE_ENV === 'production' ? "https://aavkar-backend.onrender.com" : process.env.BASE_URL || `http://localhost:${process.env.PORT || 5000}`;
     const logoUrl = `${baseUrl}/uploads/companies/${filename}`;
 
     // Add company_logo to request body
