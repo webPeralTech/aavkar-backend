@@ -6,6 +6,7 @@ export interface ICity extends Document {
   stateCode: string;
   latitude?: string;
   longitude?: string;
+  isDeleted: boolean;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -36,6 +37,10 @@ const citySchema = new Schema<ICity>(
     longitude: {
       type: String,
       trim: true,
+    },
+    isDeleted: {
+      type: Boolean,
+      default: false,
     },
   },
   {

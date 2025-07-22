@@ -10,6 +10,7 @@ export interface ICustomer extends Document {
   address?: string;
   city?: string;
   state?: string;
+  isDeleted: boolean;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -59,6 +60,10 @@ const customerSchema = new Schema<ICustomer>(
     notes: {
       type: String,
       maxlength: [1000, 'Notes cannot be more than 1000 characters'],
+    },
+    isDeleted: {
+      type: Boolean,
+      default: false,
     },
   },
   {

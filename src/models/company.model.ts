@@ -101,6 +101,10 @@ const companySchema = new Schema({
     //   message: 'Message tokens must be at least 8 characters long'
     // }
   },
+  isDeleted: {
+    type: Boolean,
+    default: false,
+  },
 }, { 
   timestamps: true,
   // Ensure only one company can exist

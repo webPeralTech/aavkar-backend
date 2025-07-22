@@ -295,7 +295,7 @@ export const getProducts = async (req: Request, res: Response): Promise<void> =>
     logger.info('Fetching products with filters:', { page, limit, ps_type, ps_tax, search });
 
     // Build filter query
-    const filter: any = {};
+    const filter: any = { isDeleted: false };
 
     if (ps_type) filter.ps_type = ps_type;
     if (ps_tax !== undefined) filter.ps_tax = Number(ps_tax);
@@ -372,7 +372,7 @@ export const getProduct = async (req: Request, res: Response): Promise<void> => 
 
     logger.info('Fetching product by ID:', { productId: id });
 
-    const product = await productModel.findById(id);
+    const product = await productModel.findOne({ _id: id, isDeleted: false });
     if (!product) {
       res.status(404).json({ 
         statusCode: 404,
@@ -431,7 +431,7 @@ export const updateProduct = async (req: Request, res: Response): Promise<void> 
 
     logger.info('Updating product:', { productId: id, updateData });
 
-    const product = await productModel.findById(id);
+    const product = await productModel.findOne({ _id: id, isDeleted: false });
 
     if (!product) {
       res.status(404).json({ 
@@ -532,7 +532,7 @@ export const deleteProduct = async (req: Request, res: Response): Promise<void> 
 
     logger.info('Deleting product:', { productId: id });
 
-    const product = await productModel.findById(id);
+    const product = await productModel.findOne({ _id: id, isDeleted: false });
 
     if (!product) {
       res.status(404).json({ 
@@ -543,12 +543,13 @@ export const deleteProduct = async (req: Request, res: Response): Promise<void> 
       return;
     }
 
-    // Delete associated photo file if exists
-    if (product.ps_photo) {
-      deleteUploadedFile(product.ps_photo);
-    }
+    // Note: We keep the photo file for soft delete - it can be cleaned up later if needed
+    // For soft delete, we don't immediately delete the photo file
+    // if (product.ps_photo) {
+    //   deleteUploadedFile(product.ps_photo);
+    // }
 
-    await productModel.findByIdAndDelete(id);
+    await productModel.findByIdAndUpdate(id, { isDeleted: true });
 
     logger.info('Product deleted successfully:', { productId: id });
 

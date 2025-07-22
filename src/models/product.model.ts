@@ -10,6 +10,7 @@ export interface IProduct extends Document {
   printing_operator_code?: string;
   ps_photo?: string;
   ps_base_cost?: number;
+  isDeleted: boolean;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -91,6 +92,10 @@ const productSchema = new Schema<IProduct>(
     },
         message: 'Base cost must be a positive number'
     },
+    },
+    isDeleted: {
+      type: Boolean,
+      default: false,
     },
   },
   {

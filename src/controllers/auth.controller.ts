@@ -18,8 +18,8 @@ export const login = async (req: Request, res: Response): Promise<void> => {
       return;
     }
 
-    // Find user and include password for comparison
-    const user = await User.findOne({ email }).select('+password');
+    // Find user and include password for comparison (only non-deleted users)
+    const user = await User.findOne({ email, isDeleted: false }).select('+password');
 
     if (!user) {
       console.log(`Login attempt failed: User not found for email: ${email}`);
@@ -102,8 +102,8 @@ export const changePassword = async (req: Request, res: Response): Promise<void>
     const { oldPassword, newPassword } = req.body;
     const userId = req.user._id;
 
-    // Get user with password
-    const user = await User.findById(userId).select('+password');
+    // Get user with password (only non-deleted users)
+    const user = await User.findOne({ _id: userId, isDeleted: false }).select('+password');
 
     if (!user) {
       res.status(404).json({ 

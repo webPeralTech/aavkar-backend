@@ -16,9 +16,10 @@ export const getCountries = async (req: Request, res: Response): Promise<void> =
     const skip = (pageNum - 1) * limitNum;
     
     // Build search query
-    let searchQuery: any = {};
+    let searchQuery: any = { isDeleted: false };
     if (search && typeof search === 'string' && search.trim() !== '') {
       searchQuery = {
+        isDeleted: false,
         $or: [
           { name: { $regex: search, $options: 'i' } },
           { isoCode: { $regex: search, $options: 'i' } }
@@ -82,9 +83,10 @@ export const getCountryByIsoCode = async (req: Request, res: Response): Promise<
       return;
     }
     
-    // Find country by ISO code (case insensitive)
+    // Find country by ISO code (case insensitive, only non-deleted)
     const country = await CountryModel.findOne({ 
-      isoCode: isoCode.toUpperCase() 
+      isoCode: isoCode.toUpperCase(),
+      isDeleted: false
     }).select('name isoCode flag phonecode currency latitude longitude');
     
     if (!country) {
@@ -136,7 +138,7 @@ export const getStatesByCountry = async (req: Request, res: Response): Promise<v
     const skip = (pageNum - 1) * limitNum;
     
     // Build search query
-    let searchQuery: any = { countryCode: countryCode.toUpperCase() };
+    let searchQuery: any = { countryCode: countryCode.toUpperCase(), isDeleted: false };
     if (search && typeof search === 'string' && search.trim() !== '') {
       searchQuery.$or = [
         { name: { $regex: search, $options: 'i' } },
@@ -212,7 +214,8 @@ export const getCitiesByState = async (req: Request, res: Response): Promise<voi
     // Build search query
     let searchQuery: any = { 
       countryCode: countryCode.toUpperCase(),
-      stateCode: stateCode.toUpperCase()
+      stateCode: stateCode.toUpperCase(),
+      isDeleted: false
     };
     if (search && typeof search === 'string' && search.trim() !== '') {
       searchQuery.name = { $regex: search, $options: 'i' };
@@ -285,7 +288,7 @@ export const getCitiesByCountry = async (req: Request, res: Response): Promise<v
     const skip = (pageNum - 1) * limitNum;
     
     // Build search query
-    let searchQuery: any = { countryCode: countryCode.toUpperCase() };
+    let searchQuery: any = { countryCode: countryCode.toUpperCase(), isDeleted: false };
     if (search && typeof search === 'string' && search.trim() !== '') {
       searchQuery.name = { $regex: search, $options: 'i' };
     }
@@ -337,9 +340,9 @@ export const getCitiesByCountry = async (req: Request, res: Response): Promise<v
 export const getLocationStats = async (req: Request, res: Response): Promise<void> => {
   try {
     const [countryCount, stateCount, cityCount] = await Promise.all([
-      CountryModel.countDocuments(),
-      StateModel.countDocuments(),
-      CityModel.countDocuments()
+      CountryModel.countDocuments({ isDeleted: false }),
+      StateModel.countDocuments({ isDeleted: false }),
+      CityModel.countDocuments({ isDeleted: false })
     ]);
     
     res.status(200).json({

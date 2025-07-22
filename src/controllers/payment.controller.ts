@@ -297,7 +297,7 @@ export const getPayments = async (req: Request, res: Response): Promise<void> =>
     logger.info('Fetching payments with filters:', { page, limit, p_type, invoice_id, start_date, end_date });
 
     // Build filter query
-    const filter: any = {};
+    const filter: any = { isDeleted: false };
 
     if (p_type) filter.p_type = p_type;
     if (invoice_id) filter.invoice_id = invoice_id;
@@ -398,7 +398,7 @@ export const getPayment = async (req: Request, res: Response): Promise<void> => 
 
     logger.info('Fetching payment by ID:', { paymentId: id });
 
-    const payment = await paymentModel.findById(id);
+    const payment = await paymentModel.findOne({ _id: id, isDeleted: false });
     if (!payment) {
       res.status(404).json({ 
         statusCode: 404,
@@ -457,7 +457,7 @@ export const updatePayment = async (req: Request, res: Response): Promise<void> 
 
     logger.info('Updating payment:', { paymentId: id, updateData });
 
-    const payment = await paymentModel.findById(id);
+    const payment = await paymentModel.findOne({ _id: id, isDeleted: false });
 
     if (!payment) {
       res.status(404).json({ 
@@ -575,7 +575,7 @@ export const deletePayment = async (req: Request, res: Response): Promise<void> 
 
     logger.info('Deleting payment:', { paymentId: id });
 
-    const payment = await paymentModel.findById(id);
+    const payment = await paymentModel.findOne({ _id: id, isDeleted: false });
 
     if (!payment) {
       res.status(404).json({ 
@@ -586,7 +586,7 @@ export const deletePayment = async (req: Request, res: Response): Promise<void> 
       return;
     }
 
-    await paymentModel.findByIdAndDelete(id);
+    await paymentModel.findByIdAndUpdate(id, { isDeleted: true });
 
     logger.info('Payment deleted successfully:', { paymentId: id });
 
@@ -630,7 +630,7 @@ export const getPaymentsByInvoice = async (req: Request, res: Response): Promise
 
     logger.info('Fetching payments for invoice:', { invoiceId });
 
-    const payments = await paymentModel.find({ invoice_id: invoiceId })
+    const payments = await paymentModel.find({ invoice_id: invoiceId, isDeleted: false })
       .sort({ date_time: -1 });
 
     // Get total payment amount for this invoice

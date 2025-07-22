@@ -61,7 +61,7 @@ export const getCustomers = async (req: Request, res: Response): Promise<void> =
     } = req.query;
 
     // Build filter query
-    const filter: any = {};
+    const filter: any = { isDeleted: false };
 
     // if (status) filter.status = status;
     // if (source) filter.source = source;
@@ -121,7 +121,7 @@ export const getCustomer = async (req: Request, res: Response): Promise<void> =>
   try {
     const { id } = req.params;
 
-    const customer = await customerModel.findById(id)
+    const customer = await customerModel.findOne({ _id: id, isDeleted: false });
     if (!customer) {
       res.status(404).json({ 
         statusCode: 404,
@@ -164,7 +164,7 @@ export const updateCustomer = async (req: Request, res: Response): Promise<void>
     const { id } = req.params;
     const updateData = req.body;
 
-    const customer = await customerModel.findById(id);
+    const customer = await customerModel.findOne({ _id: id, isDeleted: false });
 
     if (!customer) {
       res.status(404).json({ 
@@ -223,7 +223,7 @@ export const deleteCustomer = async (req: Request, res: Response): Promise<void>
   try {
     const { id } = req.params;
 
-    const customer = await customerModel.findById(id);
+    const customer = await customerModel.findOne({ _id: id, isDeleted: false });
 
     if (!customer) {
       res.status(404).json({ 
@@ -244,7 +244,7 @@ export const deleteCustomer = async (req: Request, res: Response): Promise<void>
     //   return;
     // }
 
-    await customerModel.findByIdAndDelete(id);
+    await customerModel.findByIdAndUpdate(id, { isDeleted: true });
 
     res.status(200).json({ 
       statusCode: 200,
