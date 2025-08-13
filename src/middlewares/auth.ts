@@ -50,10 +50,10 @@ export const authorize = (...roles: string[]) => {
       return;
     }
 
-    // if (!roles.includes(req.user.role)) {
-    //   res.status(403).json({ error: 'Insufficient permissions' });
-    //   return;
-    // }
+    if (!roles.includes(req.user.role)) {
+      res.status(403).json({ error: 'Insufficient permissions' });
+      return;
+    }
 
     next();
   };

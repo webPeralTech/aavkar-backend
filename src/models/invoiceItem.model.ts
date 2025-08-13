@@ -16,6 +16,8 @@ export interface IInvoiceItem extends Document {
   baseCost: number;
   printingOperation?: string;
   printingReport?: string;
+  overallStatus: 'Not Started' | 'In Progress' | 'Completed' | 'On Hold';
+  taskProgress: number; // Percentage 0-100
   isDeleted: boolean;
   createdAt: Date;
   updatedAt: Date;
@@ -106,7 +108,7 @@ const invoiceItemSchema = new Schema<IInvoiceItem>(
         values: ['Low', 'Medium', 'High'],
         message: 'Priority must be one of: Low, Medium, High'
       },
-      default: 'Medium',
+      default: 'Low',
       index: true,
     },
     allocation: {
@@ -150,6 +152,21 @@ const invoiceItemSchema = new Schema<IInvoiceItem>(
       type: String,
       trim: true,
       maxlength: [1000, 'Printing report cannot be more than 1000 characters'],
+    },
+    overallStatus: {
+      type: String,
+      enum: {
+        values: ['Not Started', 'In Progress', 'Completed', 'On Hold'],
+        message: 'Overall status must be one of: Not Started, In Progress, Completed, On Hold'
+      },
+      default: 'Not Started',
+      index: true,
+    },
+    taskProgress: {
+      type: Number,
+      min: [0, 'Task progress cannot be negative'],
+      max: [100, 'Task progress cannot exceed 100'],
+      default: 0,
     },
     isDeleted: {
       type: Boolean,
