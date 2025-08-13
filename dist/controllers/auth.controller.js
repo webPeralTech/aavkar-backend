@@ -29,8 +29,8 @@ const login = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
             });
             return;
         }
-        // Find user and include password for comparison
-        const user = yield user_model_1.default.findOne({ email }).select('+password');
+        // Find user and include password for comparison (only non-deleted users)
+        const user = yield user_model_1.default.findOne({ email, isDeleted: false }).select('+password');
         if (!user) {
             console.log(`Login attempt failed: User not found for email: ${email}`);
             res.status(401).json({
@@ -106,8 +106,8 @@ const changePassword = (req, res) => __awaiter(void 0, void 0, void 0, function*
     try {
         const { oldPassword, newPassword } = req.body;
         const userId = req.user._id;
-        // Get user with password
-        const user = yield user_model_1.default.findById(userId).select('+password');
+        // Get user with password (only non-deleted users)
+        const user = yield user_model_1.default.findOne({ _id: userId, isDeleted: false }).select('+password');
         if (!user) {
             res.status(404).json({
                 statusCode: 404,

@@ -291,7 +291,7 @@ const getProducts = (req, res) => __awaiter(void 0, void 0, void 0, function* ()
         const { page = 1, limit = 10, ps_type, ps_tax, search, sortBy = 'createdAt', sortOrder = 'desc', } = req.query;
         logger_1.default.info('Fetching products with filters:', { page, limit, ps_type, ps_tax, search });
         // Build filter query
-        const filter = {};
+        const filter = { isDeleted: false };
         if (ps_type)
             filter.ps_type = ps_type;
         if (ps_tax !== undefined)
@@ -363,7 +363,7 @@ const getProduct = (req, res) => __awaiter(void 0, void 0, void 0, function* () 
     try {
         const { id } = req.params;
         logger_1.default.info('Fetching product by ID:', { productId: id });
-        const product = yield product_model_1.default.findById(id);
+        const product = yield product_model_1.default.findOne({ _id: id, isDeleted: false });
         if (!product) {
             res.status(404).json({
                 statusCode: 404,
@@ -420,7 +420,7 @@ const updateProduct = (req, res) => __awaiter(void 0, void 0, void 0, function* 
         const { id } = req.params;
         const updateData = req.body;
         logger_1.default.info('Updating product:', { productId: id, updateData });
-        const product = yield product_model_1.default.findById(id);
+        const product = yield product_model_1.default.findOne({ _id: id, isDeleted: false });
         if (!product) {
             res.status(404).json({
                 statusCode: 404,
@@ -514,7 +514,7 @@ const deleteProduct = (req, res) => __awaiter(void 0, void 0, void 0, function* 
     try {
         const { id } = req.params;
         logger_1.default.info('Deleting product:', { productId: id });
-        const product = yield product_model_1.default.findById(id);
+        const product = yield product_model_1.default.findOne({ _id: id, isDeleted: false });
         if (!product) {
             res.status(404).json({
                 statusCode: 404,
@@ -523,11 +523,12 @@ const deleteProduct = (req, res) => __awaiter(void 0, void 0, void 0, function* 
             });
             return;
         }
-        // Delete associated photo file if exists
-        if (product.ps_photo) {
-            (0, fileUtils_1.deleteUploadedFile)(product.ps_photo);
-        }
-        yield product_model_1.default.findByIdAndDelete(id);
+        // Note: We keep the photo file for soft delete - it can be cleaned up later if needed
+        // For soft delete, we don't immediately delete the photo file
+        // if (product.ps_photo) {
+        //   deleteUploadedFile(product.ps_photo);
+        // }
+        yield product_model_1.default.findByIdAndUpdate(id, { isDeleted: true });
         logger_1.default.info('Product deleted successfully:', { productId: id });
         res.status(200).json({
             statusCode: 200,

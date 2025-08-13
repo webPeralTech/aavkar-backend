@@ -60,6 +60,10 @@ const stateSchema = new mongoose_1.Schema({
         type: String,
         trim: true,
     },
+    isDeleted: {
+        type: Boolean,
+        default: false,
+    },
 }, {
     timestamps: true,
 });

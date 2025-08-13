@@ -67,7 +67,7 @@ const getCustomers = (req, res) => __awaiter(void 0, void 0, void 0, function* (
         // assignedTo,
         search, sortBy = 'createdAt', sortOrder = 'desc', } = req.query;
         // Build filter query
-        const filter = {};
+        const filter = { isDeleted: false };
         // if (status) filter.status = status;
         // if (source) filter.source = source;
         // if (assignedTo) filter.assignedTo = assignedTo;
@@ -120,7 +120,7 @@ exports.getCustomers = getCustomers;
 const getCustomer = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const { id } = req.params;
-        const customer = yield customer_model_1.default.findById(id);
+        const customer = yield customer_model_1.default.findOne({ _id: id, isDeleted: false });
         if (!customer) {
             res.status(404).json({
                 statusCode: 404,
@@ -161,7 +161,7 @@ const updateCustomer = (req, res) => __awaiter(void 0, void 0, void 0, function*
     try {
         const { id } = req.params;
         const updateData = req.body;
-        const customer = yield customer_model_1.default.findById(id);
+        const customer = yield customer_model_1.default.findOne({ _id: id, isDeleted: false });
         if (!customer) {
             res.status(404).json({
                 statusCode: 404,
@@ -217,7 +217,7 @@ exports.updateCustomer = updateCustomer;
 const deleteCustomer = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const { id } = req.params;
-        const customer = yield customer_model_1.default.findById(id);
+        const customer = yield customer_model_1.default.findOne({ _id: id, isDeleted: false });
         if (!customer) {
             res.status(404).json({
                 statusCode: 404,
@@ -235,7 +235,7 @@ const deleteCustomer = (req, res) => __awaiter(void 0, void 0, void 0, function*
         //   });
         //   return;
         // }
-        yield customer_model_1.default.findByIdAndDelete(id);
+        yield customer_model_1.default.findByIdAndUpdate(id, { isDeleted: true });
         res.status(200).json({
             statusCode: 200,
             message: 'Customer deleted successfully',

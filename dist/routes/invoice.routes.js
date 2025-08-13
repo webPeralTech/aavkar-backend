@@ -1,21 +1,14 @@
-import express from 'express';
-import {
-  createInvoice,
-  getInvoices,
-  getInvoice,
-  updateInvoice,
-  deleteInvoice,
-  updateInvoicePayment,
-  getInvoiceStatistics,
-  updateInvoiceStatus,
-} from '../controllers/invoice.controller';
-import { authenticate, authorize } from '../middlewares/auth';
-
-const router = express.Router();
-
+"use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+const express_1 = __importDefault(require("express"));
+const invoice_controller_1 = require("../controllers/invoice.controller");
+const auth_1 = require("../middlewares/auth");
+const router = express_1.default.Router();
 // All routes require authentication
-router.use(authenticate);
-
+router.use(auth_1.authenticate);
 /**
  * @swagger
  * /api/invoices:
@@ -131,8 +124,7 @@ router.use(authenticate);
  *       404:
  *         description: Customer or product not found
  */
-router.post('/', createInvoice);
-
+router.post('/', invoice_controller_1.createInvoice);
 /**
  * @swagger
  * /api/invoices:
@@ -206,8 +198,7 @@ router.post('/', createInvoice);
  *       200:
  *         description: Invoices retrieved successfully
  */
-router.get('/', getInvoices);
-
+router.get('/', invoice_controller_1.getInvoices);
 /**
  * @swagger
  * /api/invoices/statistics:
@@ -234,8 +225,7 @@ router.get('/', getInvoices);
  *       200:
  *         description: Statistics retrieved successfully
  */
-router.get('/statistics', getInvoiceStatistics);
-
+router.get('/statistics', invoice_controller_1.getInvoiceStatistics);
 /**
  * @swagger
  * /api/invoices/{id}:
@@ -258,8 +248,7 @@ router.get('/statistics', getInvoiceStatistics);
  *       404:
  *         description: Invoice not found
  */
-router.get('/:id', getInvoice);
-
+router.get('/:id', invoice_controller_1.getInvoice);
 /**
  * @swagger
  * /api/invoices/{id}:
@@ -307,8 +296,7 @@ router.get('/:id', getInvoice);
  *       404:
  *         description: Invoice not found
  */
-router.put('/:id', updateInvoice);
-
+router.put('/:id', invoice_controller_1.updateInvoice);
 /**
  * @swagger
  * /api/invoices/{id}/payment:
@@ -343,8 +331,7 @@ router.put('/:id', updateInvoice);
  *       404:
  *         description: Invoice not found
  */
-router.put('/:id/payment', updateInvoicePayment);
-
+router.put('/:id/payment', invoice_controller_1.updateInvoicePayment);
 /**
  * @swagger
  * /api/invoices/{id}/status:
@@ -382,8 +369,7 @@ router.put('/:id/payment', updateInvoicePayment);
  *       404:
  *         description: Invoice not found
  */
-router.put('/:id/status', updateInvoiceStatus);
-
+router.put('/:id/status', invoice_controller_1.updateInvoiceStatus);
 /**
  * @swagger
  * /api/invoices/{id}:
@@ -406,6 +392,5 @@ router.put('/:id/status', updateInvoiceStatus);
  *       404:
  *         description: Invoice not found
  */
-router.delete('/:id', deleteInvoice);
-
-export default router; 
+router.delete('/:id', invoice_controller_1.deleteInvoice);
+exports.default = router;

@@ -15,8 +15,8 @@ const fileUtils_1 = require("../utils/fileUtils");
 // Create or Update company (unified function)
 const createOrUpdate = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        // Check if any company exists
-        const existingCompany = yield company_model_1.Company.findOne();
+        // Check if any company exists (only non-deleted)
+        const existingCompany = yield company_model_1.Company.findOne({ isDeleted: false });
         if (existingCompany) {
             // Update existing company
             // If a new logo is uploaded, delete the old one
@@ -72,7 +72,7 @@ exports.createOrUpdate = createOrUpdate;
 // Get company
 const getAll = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const company = yield company_model_1.Company.findOne();
+        const company = yield company_model_1.Company.findOne({ isDeleted: false });
         if (!company) {
             res.status(404).json({
                 statusCode: 404,
@@ -100,7 +100,7 @@ exports.getAll = getAll;
 // Get company by ID
 const getById = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const company = yield company_model_1.Company.findById(req.params.id);
+        const company = yield company_model_1.Company.findOne({ _id: req.params.id, isDeleted: false });
         if (!company) {
             res.status(404).json({
                 statusCode: 404,
@@ -128,7 +128,7 @@ exports.getById = getById;
 // Delete company
 const deleteCompany = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const company = yield company_model_1.Company.findById(req.params.id);
+        const company = yield company_model_1.Company.findOne({ _id: req.params.id, isDeleted: false });
         if (!company) {
             res.status(404).json({
                 statusCode: 404,
@@ -137,11 +137,12 @@ const deleteCompany = (req, res) => __awaiter(void 0, void 0, void 0, function* 
             });
             return;
         }
-        // Delete company logo if exists
-        if (company.company_logo) {
-            (0, fileUtils_1.deleteUploadedFile)(company.company_logo);
-        }
-        yield company_model_1.Company.findByIdAndDelete(req.params.id);
+        // Note: We keep the logo file for soft delete - it can be cleaned up later if needed
+        // For soft delete, we don't immediately delete the logo file
+        // if (company.company_logo) {
+        //   deleteUploadedFile(company.company_logo);
+        // }
+        yield company_model_1.Company.findByIdAndUpdate(req.params.id, { isDeleted: true });
         res.status(200).json({
             statusCode: 200,
             message: 'Company deleted successfully',

@@ -121,6 +121,10 @@ const productSchema = new mongoose_1.Schema({
             message: 'Base cost must be a positive number'
         },
     },
+    isDeleted: {
+        type: Boolean,
+        default: false,
+    },
 }, {
     timestamps: true,
     // Ensure proper indexing for common queries

@@ -79,6 +79,10 @@ const customerSchema = new mongoose_1.Schema({
         type: String,
         maxlength: [1000, 'Notes cannot be more than 1000 characters'],
     },
+    isDeleted: {
+        type: Boolean,
+        default: false,
+    },
 }, {
     timestamps: true,
 });

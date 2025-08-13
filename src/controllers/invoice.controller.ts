@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
 import invoiceModel, { IInvoice } from '../models/invoice.model';
-import invoiceItemModel from '../models/invoiceItem.model';
 import customerModel from '../models/customer.model';
+import productModel from '../models/product.model';
 
 export const createInvoice = async (req: Request, res: Response): Promise<void> => {
   try {
@@ -10,7 +10,10 @@ export const createInvoice = async (req: Request, res: Response): Promise<void> 
     console.log('Creating new invoice:', { invoiceData });
 
     // Verify customer exists and is not deleted
-    const customer = await customerModel.findOne({ _id: invoiceData.customerId, isDeleted: false });
+    const customer = await customerModel.findOne({ _id: invoiceData.customer.id, isDeleted: false });
+
+    console.log('Customer:', customer);
+
     if (!customer) {
       res.status(404).json({
         statusCode: 404,
@@ -20,17 +23,42 @@ export const createInvoice = async (req: Request, res: Response): Promise<void> 
       return;
     }
 
-    // Generate unique invoice ID if not provided
-    if (!invoiceData.invoiceId) {
-      invoiceData.invoiceId = await invoiceModel.generateInvoiceId();
+    // Verify all products exist
+    const productIds = invoiceData.items.map((item: any) => item.product.id);
+    const products = await productModel.find({ _id: { $in: productIds }, isDeleted: false });
+    
+    if (products.length !== productIds.length) {
+      res.status(404).json({
+        statusCode: 404,
+        message: 'One or more products not found',
+        error: 'Product not found'
+      });
+      return;
     }
 
-    // Create invoice
+    // Generate unique invoice number if not provided
+    if (!invoiceData.invoiceNumber) {
+      invoiceData.invoiceNumber = await invoiceModel.generateInvoiceNumber();
+    }
+
+    // Set default from information if not provided
+    if (!invoiceData.from) {
+      invoiceData.from = {
+        name: "Aavkar Graphics",
+        address: "G-28, Silver Business Point, Utran, Mota Varachha, Surat.",
+        phone: "8980915579",
+        email: "aavkargraphics@gmail.com"
+      };
+    }
+
+    // Set default issued date if not provided
+    if (!invoiceData.issuedDate) {
+      invoiceData.issuedDate = new Date();
+    }
+
+    // Create invoice with embedded items
     const invoice: IInvoice = new invoiceModel(invoiceData);
     await invoice.save();
-
-    // Populate customer data
-    await invoice.populate('customerId', 'name email company');
 
     console.log('Invoice created successfully:', { invoiceId: invoice._id });
 
@@ -77,29 +105,33 @@ export const getInvoices = async (req: Request, res: Response): Promise<void> =>
       start_date,
       end_date,
       search,
-      sortBy = 'invoiceDate',
+      priority,
+      sortBy = 'issuedDate',
       sortOrder = 'desc',
     } = req.query;
 
-    console.log('Fetching invoices with filters:', { page, limit, status, customerId, start_date, end_date, search });
+    console.log('Fetching invoices with filters:', { page, limit, status, customerId, start_date, end_date, search, priority });
 
     // Build filter query
     const filter: any = { isDeleted: false };
 
-    if (status) filter.invoiceStatus = status;
-    if (customerId) filter.customerId = customerId;
+    if (status) filter.status = status;
+    if (customerId) filter['customer.id'] = customerId;
+    if (priority) filter['items.priority'] = priority;
 
     // Date range filter
     if (start_date || end_date) {
-      filter.invoiceDate = {};
-      if (start_date) filter.invoiceDate.$gte = new Date(start_date as string);
-      if (end_date) filter.invoiceDate.$lte = new Date(end_date as string);
+      filter.issuedDate = {};
+      if (start_date) filter.issuedDate.$gte = new Date(start_date as string);
+      if (end_date) filter.issuedDate.$lte = new Date(end_date as string);
     }
 
     // Search functionality
     if (search) {
       filter.$or = [
-        { invoiceId: { $regex: search, $options: 'i' } },
+        { invoiceNumber: { $regex: search, $options: 'i' } },
+        { 'customer.name': { $regex: search, $options: 'i' } },
+        { 'customer.phone': { $regex: search, $options: 'i' } },
       ];
     }
 
@@ -109,7 +141,6 @@ export const getInvoices = async (req: Request, res: Response): Promise<void> =>
     sortObject[sortBy as string] = sortDirection;
 
     const invoices = await invoiceModel.find(filter)
-      .populate('customerId', 'name email company')
       .sort(sortObject)
       .skip(skip)
       .limit(Number(limit));
@@ -120,12 +151,33 @@ export const getInvoices = async (req: Request, res: Response): Promise<void> =>
     const summaryStats = await invoiceModel.aggregate([
       { $match: filter },
       {
+        $addFields: {
+          totalProfit: {
+            $reduce: {
+              input: '$items',
+              initialValue: 0,
+              in: {
+                $add: [
+                  '$$value',
+                  {
+                    $subtract: [
+                      '$$this.total',
+                      { $multiply: ['$$this.quantity', '$$this.baseCost'] }
+                    ]
+                  }
+                ]
+              }
+            }
+          }
+        }
+      },
+      {
         $group: {
           _id: null,
-          totalAmount: { $sum: '$totalAmount' },
-          totalPaid: { $sum: '$paidAmount' },
-          totalDue: { $sum: '$dueAmount' },
-          totalProfit: { $sum: '$profitCalculated' }
+          totalAmount: { $sum: '$summary.grandTotal' },
+          totalPaid: { $sum: { $ifNull: ['$paidAmount', 0] } },
+          totalDue: { $sum: { $ifNull: ['$dueAmount', '$summary.grandTotal'] } },
+          totalProfit: { $sum: '$totalProfit' }
         }
       }
     ]);
@@ -165,8 +217,7 @@ export const getInvoice = async (req: Request, res: Response): Promise<void> => 
 
     console.log('Fetching invoice by ID:', { invoiceId: id });
 
-    const invoice = await invoiceModel.findOne({ _id: id, isDeleted: false })
-      .populate('customerId', 'name email company phone address city state');
+    const invoice = await invoiceModel.findOne({ _id: id, isDeleted: false });
 
     if (!invoice) {
       res.status(404).json({
@@ -177,17 +228,10 @@ export const getInvoice = async (req: Request, res: Response): Promise<void> => 
       return;
     }
 
-    // Get invoice items
-    const invoiceItems = await invoiceItemModel.find({ invoiceId: id, isDeleted: false })
-      .populate('psId', 'ps_name ps_type ps_unit');
-
     res.status(200).json({
       statusCode: 200,
       message: 'Invoice retrieved successfully',
-      data: { 
-        invoice,
-        items: invoiceItems
-      }
+      data: { invoice }
     });
   } catch (error) {
     console.error('Get invoice error:', error);
@@ -217,9 +261,9 @@ export const updateInvoice = async (req: Request, res: Response): Promise<void> 
       return;
     }
 
-    // If customerId is being updated, verify it exists
-    if (updateData.customerId && updateData.customerId !== invoice.customerId.toString()) {
-      const customer = await customerModel.findOne({ _id: updateData.customerId, isDeleted: false });
+    // If customer is being updated, verify it exists
+    if (updateData.customer?.id && updateData.customer.id !== invoice.customer.id.toString()) {
+      const customer = await customerModel.findOne({ _id: updateData.customer.id, isDeleted: false });
       if (!customer) {
         res.status(404).json({
           statusCode: 404,
@@ -230,10 +274,25 @@ export const updateInvoice = async (req: Request, res: Response): Promise<void> 
       }
     }
 
+    // If items are being updated, verify products exist
+    if (updateData.items && Array.isArray(updateData.items)) {
+      const productIds = updateData.items.map((item: any) => item.product.id);
+      const products = await productModel.find({ _id: { $in: productIds }, isDeleted: false });
+      
+      if (products.length !== productIds.length) {
+        res.status(404).json({
+          statusCode: 404,
+          message: 'One or more products not found',
+          error: 'Product not found'
+        });
+        return;
+      }
+    }
+
     const updatedInvoice = await invoiceModel.findByIdAndUpdate(id, updateData, {
       new: true,
       runValidators: true,
-    }).populate('customerId', 'name email company');
+    });
 
     console.log('Invoice updated successfully:', { invoiceId: id });
 
@@ -280,14 +339,8 @@ export const deleteInvoice = async (req: Request, res: Response): Promise<void> 
       return;
     }
 
-    // Soft delete the invoice
+    // Soft delete the invoice (items are embedded so they get deleted with the invoice)
     await invoiceModel.findByIdAndUpdate(id, { isDeleted: true });
-
-    // Also soft delete all related invoice items
-    await invoiceItemModel.updateMany(
-      { invoiceId: id },
-      { isDeleted: true }
-    );
 
     console.log('Invoice deleted successfully:', { invoiceId: id });
 
@@ -325,11 +378,11 @@ export const updateInvoicePayment = async (req: Request, res: Response): Promise
     }
 
     // Validate paid amount
-    if (paidAmount < 0 || paidAmount > invoice.totalAmount) {
+    if (paidAmount < 0 || paidAmount > invoice.summary.grandTotal) {
       res.status(400).json({
         statusCode: 400,
         message: 'Invalid paid amount',
-        error: 'Paid amount must be between 0 and total amount'
+        error: 'Paid amount must be between 0 and grand total amount'
       });
       return;
     }
@@ -337,7 +390,7 @@ export const updateInvoicePayment = async (req: Request, res: Response): Promise
     const updatedInvoice = await invoiceModel.findByIdAndUpdate(id, { paidAmount }, {
       new: true,
       runValidators: true,
-    }).populate('customerId', 'name email company');
+    });
 
     console.log('Invoice payment updated successfully:', { invoiceId: id });
 
@@ -387,6 +440,57 @@ export const getInvoiceStatistics = async (req: Request, res: Response): Promise
     });
   } catch (error) {
     console.error('Get invoice statistics error:', error);
+    res.status(500).json({
+      statusCode: 500,
+      message: 'Server error',
+      error: 'Internal server error'
+    });
+  }
+};
+
+// New method to update invoice status
+export const updateInvoiceStatus = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { id } = req.params;
+    const { status } = req.body;
+
+    console.log('Updating invoice status:', { invoiceId: id, status });
+
+    const validStatuses = ['draft', 'pending', 'confirmed', 'in_progress', 'completed', 'cancelled'];
+    if (!validStatuses.includes(status)) {
+      res.status(400).json({
+        statusCode: 400,
+        message: 'Invalid status',
+        error: 'Status must be one of: draft, pending, confirmed, in_progress, completed, cancelled'
+      });
+      return;
+    }
+
+    const invoice = await invoiceModel.findOne({ _id: id, isDeleted: false });
+
+    if (!invoice) {
+      res.status(404).json({
+        statusCode: 404,
+        message: 'Invoice not found',
+        error: 'Invoice not found'
+      });
+      return;
+    }
+
+    const updatedInvoice = await invoiceModel.findByIdAndUpdate(id, { status }, {
+      new: true,
+      runValidators: true,
+    });
+
+    console.log('Invoice status updated successfully:', { invoiceId: id });
+
+    res.status(200).json({
+      statusCode: 200,
+      message: 'Invoice status updated successfully',
+      data: { invoice: updatedInvoice },
+    });
+  } catch (error) {
+    console.error('Update invoice status error:', error);
     res.status(500).json({
       statusCode: 500,
       message: 'Server error',

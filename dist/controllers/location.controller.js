@@ -26,9 +26,10 @@ const getCountries = (req, res) => __awaiter(void 0, void 0, void 0, function* (
         // Calculate skip value for pagination
         const skip = (pageNum - 1) * limitNum;
         // Build search query
-        let searchQuery = {};
+        let searchQuery = { isDeleted: false };
         if (search && typeof search === 'string' && search.trim() !== '') {
             searchQuery = {
+                isDeleted: false,
                 $or: [
                     { name: { $regex: search, $options: 'i' } },
                     { isoCode: { $regex: search, $options: 'i' } }
@@ -87,9 +88,10 @@ const getCountryByIsoCode = (req, res) => __awaiter(void 0, void 0, void 0, func
             });
             return;
         }
-        // Find country by ISO code (case insensitive)
+        // Find country by ISO code (case insensitive, only non-deleted)
         const country = yield country_model_1.default.findOne({
-            isoCode: isoCode.toUpperCase()
+            isoCode: isoCode.toUpperCase(),
+            isDeleted: false
         }).select('name isoCode flag phonecode currency latitude longitude');
         if (!country) {
             res.status(404).json({
@@ -136,7 +138,7 @@ const getStatesByCountry = (req, res) => __awaiter(void 0, void 0, void 0, funct
         // Calculate skip value for pagination
         const skip = (pageNum - 1) * limitNum;
         // Build search query
-        let searchQuery = { countryCode: countryCode.toUpperCase() };
+        let searchQuery = { countryCode: countryCode.toUpperCase(), isDeleted: false };
         if (search && typeof search === 'string' && search.trim() !== '') {
             searchQuery.$or = [
                 { name: { $regex: search, $options: 'i' } },
@@ -205,7 +207,8 @@ const getCitiesByState = (req, res) => __awaiter(void 0, void 0, void 0, functio
         // Build search query
         let searchQuery = {
             countryCode: countryCode.toUpperCase(),
-            stateCode: stateCode.toUpperCase()
+            stateCode: stateCode.toUpperCase(),
+            isDeleted: false
         };
         if (search && typeof search === 'string' && search.trim() !== '') {
             searchQuery.name = { $regex: search, $options: 'i' };
@@ -271,7 +274,7 @@ const getCitiesByCountry = (req, res) => __awaiter(void 0, void 0, void 0, funct
         // Calculate skip value for pagination
         const skip = (pageNum - 1) * limitNum;
         // Build search query
-        let searchQuery = { countryCode: countryCode.toUpperCase() };
+        let searchQuery = { countryCode: countryCode.toUpperCase(), isDeleted: false };
         if (search && typeof search === 'string' && search.trim() !== '') {
             searchQuery.name = { $regex: search, $options: 'i' };
         }
@@ -320,9 +323,9 @@ exports.getCitiesByCountry = getCitiesByCountry;
 const getLocationStats = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const [countryCount, stateCount, cityCount] = yield Promise.all([
-            country_model_1.default.countDocuments(),
-            state_model_1.default.countDocuments(),
-            city_model_1.default.countDocuments()
+            country_model_1.default.countDocuments({ isDeleted: false }),
+            state_model_1.default.countDocuments({ isDeleted: false }),
+            city_model_1.default.countDocuments({ isDeleted: false })
         ]);
         res.status(200).json({
             statusCode: 200,
