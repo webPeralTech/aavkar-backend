@@ -74,6 +74,10 @@ const paymentSchema = new mongoose_1.Schema({
             message: 'Payment amount can have at most 2 decimal places'
         },
     },
+    isDeleted: {
+        type: Boolean,
+        default: false,
+    },
 }, {
     timestamps: true,
 });
@@ -100,13 +104,13 @@ paymentSchema.pre('save', function (next) {
 // Static method to get total payments for an invoice
 paymentSchema.statics.getTotalPaymentsForInvoice = function (invoiceId) {
     return this.aggregate([
-        { $match: { invoice_id: invoiceId } },
+        { $match: { invoice_id: invoiceId, isDeleted: false } },
         { $group: { _id: null, totalAmount: { $sum: '$amount' }, count: { $sum: 1 } } }
     ]);
 };
 // Static method to get payment statistics by type
 paymentSchema.statics.getPaymentStatsByType = function (startDate, endDate) {
-    const matchStage = {};
+    const matchStage = { isDeleted: false };
     if (startDate || endDate) {
         matchStage.date_time = {};
         if (startDate)
@@ -115,7 +119,7 @@ paymentSchema.statics.getPaymentStatsByType = function (startDate, endDate) {
             matchStage.date_time.$lte = endDate;
     }
     return this.aggregate([
-        ...(Object.keys(matchStage).length > 0 ? [{ $match: matchStage }] : []),
+        { $match: matchStage },
         {
             $group: {
                 _id: '$p_type',

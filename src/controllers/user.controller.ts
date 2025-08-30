@@ -7,8 +7,8 @@ export const register = async (req: Request, res: Response): Promise<void> => {
   try {
     const { name, email, password, role } = req.body;
 
-    // Check if user already exists
-    const existingUser = await User.findOne({ email });
+    // Check if user already exists (only check non-deleted users)
+    const existingUser = await User.findOne({ email, isDeleted: false });
     if (existingUser) {
       res.status(400).json({ 
         statusCode: 400,
@@ -118,9 +118,10 @@ export const getAll = async (req: Request, res: Response): Promise<void> => {
     const skip = (pageNum - 1) * limitNum;
     
     // Build search query
-    let searchQuery: any = {};
+    let searchQuery: any = { isDeleted: false };
     if (search && typeof search === 'string' && search.trim() !== '') {
       searchQuery = {
+        isDeleted: false,
         $or: [
           { name: { $regex: search, $options: 'i' } },
           { email: { $regex: search, $options: 'i' } },
@@ -199,8 +200,8 @@ export const deleteUser = async (req: Request, res: Response): Promise<void> => 
   try {
     const { userId } = req.params;
     
-    // Check if user exists
-    const user = await User.findById(userId);
+    // Check if user exists and is not deleted
+    const user = await User.findOne({ _id: userId, isDeleted: false });
     if (!user) {
       res.status(404).json({
         statusCode: 404,
@@ -220,8 +221,8 @@ export const deleteUser = async (req: Request, res: Response): Promise<void> => 
       return;
     }
 
-    // Delete the user (hard delete)
-    await User.findByIdAndDelete(userId);
+    // Soft delete the user
+    await User.findByIdAndUpdate(userId, { isDeleted: true });
 
     res.status(200).json({
       statusCode: 200,
@@ -261,8 +262,8 @@ export const toggleUserStatus = async (req: Request, res: Response): Promise<voi
       return;
     }
 
-    // Check if user exists
-    const user = await User.findById(userId);
+    // Check if user exists and is not deleted
+    const user = await User.findOne({ _id: userId, isDeleted: false });
     if (!user) {
       res.status(404).json({
         statusCode: 404,
@@ -319,8 +320,8 @@ export const updateUser = async (req: Request, res: Response): Promise<void> => 
     const { userId } = req.params;
     const { name, email, password, role } = req.body;
     
-    // Check if user exists
-    const user = await User.findById(userId);
+    // Check if user exists and is not deleted
+    const user = await User.findOne({ _id: userId, isDeleted: false });
     if (!user) {
       res.status(404).json({
         statusCode: 404,
@@ -330,9 +331,9 @@ export const updateUser = async (req: Request, res: Response): Promise<void> => 
       return;
     }
 
-    // If email is being updated, check if it already exists
+    // If email is being updated, check if it already exists (only check non-deleted users)
     if (email && email !== user.email) {
-      const existingUser = await User.findOne({ email });
+      const existingUser = await User.findOne({ email, isDeleted: false });
       if (existingUser) {
         res.status(400).json({
           statusCode: 400,

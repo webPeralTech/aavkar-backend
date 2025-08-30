@@ -287,7 +287,7 @@ const getPayments = (req, res) => __awaiter(void 0, void 0, void 0, function* ()
         const { page = 1, limit = 10, p_type, invoice_id, start_date, end_date, min_amount, max_amount, sortBy = 'date_time', sortOrder = 'desc', } = req.query;
         logger_1.default.info('Fetching payments with filters:', { page, limit, p_type, invoice_id, start_date, end_date });
         // Build filter query
-        const filter = {};
+        const filter = { isDeleted: false };
         if (p_type)
             filter.p_type = p_type;
         if (invoice_id)
@@ -385,7 +385,7 @@ const getPayment = (req, res) => __awaiter(void 0, void 0, void 0, function* () 
     try {
         const { id } = req.params;
         logger_1.default.info('Fetching payment by ID:', { paymentId: id });
-        const payment = yield payment_model_1.default.findById(id);
+        const payment = yield payment_model_1.default.findOne({ _id: id, isDeleted: false });
         if (!payment) {
             res.status(404).json({
                 statusCode: 404,
@@ -442,7 +442,7 @@ const updatePayment = (req, res) => __awaiter(void 0, void 0, void 0, function* 
         const { id } = req.params;
         const updateData = req.body;
         logger_1.default.info('Updating payment:', { paymentId: id, updateData });
-        const payment = yield payment_model_1.default.findById(id);
+        const payment = yield payment_model_1.default.findOne({ _id: id, isDeleted: false });
         if (!payment) {
             res.status(404).json({
                 statusCode: 404,
@@ -551,7 +551,7 @@ const deletePayment = (req, res) => __awaiter(void 0, void 0, void 0, function* 
     try {
         const { id } = req.params;
         logger_1.default.info('Deleting payment:', { paymentId: id });
-        const payment = yield payment_model_1.default.findById(id);
+        const payment = yield payment_model_1.default.findOne({ _id: id, isDeleted: false });
         if (!payment) {
             res.status(404).json({
                 statusCode: 404,
@@ -560,7 +560,7 @@ const deletePayment = (req, res) => __awaiter(void 0, void 0, void 0, function* 
             });
             return;
         }
-        yield payment_model_1.default.findByIdAndDelete(id);
+        yield payment_model_1.default.findByIdAndUpdate(id, { isDeleted: true });
         logger_1.default.info('Payment deleted successfully:', { paymentId: id });
         res.status(200).json({
             statusCode: 200,
@@ -601,7 +601,7 @@ const getPaymentsByInvoice = (req, res) => __awaiter(void 0, void 0, void 0, fun
     try {
         const { invoiceId } = req.params;
         logger_1.default.info('Fetching payments for invoice:', { invoiceId });
-        const payments = yield payment_model_1.default.find({ invoice_id: invoiceId })
+        const payments = yield payment_model_1.default.find({ invoice_id: invoiceId, isDeleted: false })
             .sort({ date_time: -1 });
         // Get total payment amount for this invoice
         const totalStats = yield payment_model_1.default.getTotalPaymentsForInvoice(invoiceId);

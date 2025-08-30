@@ -8,6 +8,7 @@ export interface ICountry extends Document {
   currency: string;
   latitude: string;
   longitude: string;
+  isDeleted: boolean;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -46,6 +47,10 @@ const countrySchema = new Schema<ICountry>(
     longitude: {
       type: String,
       trim: true,
+    },
+    isDeleted: {
+      type: Boolean,
+      default: false,
     },
   },
   {

@@ -19,8 +19,8 @@ const encryption_1 = require("../utils/encryption");
 const register = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const { name, email, password, role } = req.body;
-        // Check if user already exists
-        const existingUser = yield user_model_1.default.findOne({ email });
+        // Check if user already exists (only check non-deleted users)
+        const existingUser = yield user_model_1.default.findOne({ email, isDeleted: false });
         if (existingUser) {
             res.status(400).json({
                 statusCode: 400,
@@ -119,9 +119,10 @@ const getAll = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
         // Calculate skip value for pagination
         const skip = (pageNum - 1) * limitNum;
         // Build search query
-        let searchQuery = {};
+        let searchQuery = { isDeleted: false };
         if (search && typeof search === 'string' && search.trim() !== '') {
             searchQuery = {
+                isDeleted: false,
                 $or: [
                     { name: { $regex: search, $options: 'i' } },
                     { email: { $regex: search, $options: 'i' } },
@@ -194,8 +195,8 @@ exports.getAll = getAll;
 const deleteUser = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const { userId } = req.params;
-        // Check if user exists
-        const user = yield user_model_1.default.findById(userId);
+        // Check if user exists and is not deleted
+        const user = yield user_model_1.default.findOne({ _id: userId, isDeleted: false });
         if (!user) {
             res.status(404).json({
                 statusCode: 404,
@@ -213,8 +214,8 @@ const deleteUser = (req, res) => __awaiter(void 0, void 0, void 0, function* () 
             });
             return;
         }
-        // Delete the user (hard delete)
-        yield user_model_1.default.findByIdAndDelete(userId);
+        // Soft delete the user
+        yield user_model_1.default.findByIdAndUpdate(userId, { isDeleted: true });
         res.status(200).json({
             statusCode: 200,
             message: 'User deleted successfully',
@@ -252,8 +253,8 @@ const toggleUserStatus = (req, res) => __awaiter(void 0, void 0, void 0, functio
             });
             return;
         }
-        // Check if user exists
-        const user = yield user_model_1.default.findById(userId);
+        // Check if user exists and is not deleted
+        const user = yield user_model_1.default.findOne({ _id: userId, isDeleted: false });
         if (!user) {
             res.status(404).json({
                 statusCode: 404,
@@ -303,8 +304,8 @@ const updateUser = (req, res) => __awaiter(void 0, void 0, void 0, function* () 
     try {
         const { userId } = req.params;
         const { name, email, password, role } = req.body;
-        // Check if user exists
-        const user = yield user_model_1.default.findById(userId);
+        // Check if user exists and is not deleted
+        const user = yield user_model_1.default.findOne({ _id: userId, isDeleted: false });
         if (!user) {
             res.status(404).json({
                 statusCode: 404,
@@ -313,9 +314,9 @@ const updateUser = (req, res) => __awaiter(void 0, void 0, void 0, function* () 
             });
             return;
         }
-        // If email is being updated, check if it already exists
+        // If email is being updated, check if it already exists (only check non-deleted users)
         if (email && email !== user.email) {
-            const existingUser = yield user_model_1.default.findOne({ email });
+            const existingUser = yield user_model_1.default.findOne({ email, isDeleted: false });
             if (existingUser) {
                 res.status(400).json({
                     statusCode: 400,

@@ -5,6 +5,7 @@ export interface IPayment extends Document {
   invoice_id: string;
   date_time: Date;
   amount: number;
+  isDeleted: boolean;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -55,6 +56,10 @@ const paymentSchema = new Schema<IPayment>(
         message: 'Payment amount can have at most 2 decimal places'
       },
     },
+    isDeleted: {
+      type: Boolean,
+      default: false,
+    },
   },
   {
     timestamps: true,
@@ -88,14 +93,14 @@ paymentSchema.pre('save', function(next) {
 // Static method to get total payments for an invoice
 paymentSchema.statics.getTotalPaymentsForInvoice = function(invoiceId: string) {
   return this.aggregate([
-    { $match: { invoice_id: invoiceId } },
+    { $match: { invoice_id: invoiceId, isDeleted: false } },
     { $group: { _id: null, totalAmount: { $sum: '$amount' }, count: { $sum: 1 } } }
   ]);
 };
 
 // Static method to get payment statistics by type
 paymentSchema.statics.getPaymentStatsByType = function(startDate?: Date, endDate?: Date) {
-  const matchStage: any = {};
+  const matchStage: any = { isDeleted: false };
   if (startDate || endDate) {
     matchStage.date_time = {};
     if (startDate) matchStage.date_time.$gte = startDate;
@@ -103,7 +108,7 @@ paymentSchema.statics.getPaymentStatsByType = function(startDate?: Date, endDate
   }
 
   return this.aggregate([
-    ...(Object.keys(matchStage).length > 0 ? [{ $match: matchStage }] : []),
+    { $match: matchStage },
     {
       $group: {
         _id: '$p_type',

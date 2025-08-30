@@ -6,6 +6,7 @@ export interface IState extends Document {
   countryCode: string;
   latitude?: string;
   longitude?: string;
+  isDeleted: boolean;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -36,6 +37,10 @@ const stateSchema = new Schema<IState>(
     longitude: {
       type: String,
       trim: true,
+    },
+    isDeleted: {
+      type: Boolean,
+      default: false,
     },
   },
   {

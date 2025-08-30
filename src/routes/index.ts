@@ -6,6 +6,9 @@ import companyRoutes from './company.routes';
 import locationRoutes from './location.routes';
 import productRoutes from './products.routes';
 import paymentRoutes from './payment.routes';
+import invoiceRoutes from './invoice.routes';
+import invoiceItemRoutes from './invoiceItem.routes';
+import taskAssignmentRoutes from './taskAssignment.routes';
 
 const router = express.Router();
 
@@ -17,5 +20,8 @@ router.use('/companies', companyRoutes);
 router.use('/locations', locationRoutes);
 router.use('/products', productRoutes);
 router.use('/payments', paymentRoutes);
+router.use('/invoices', invoiceRoutes);
+router.use('/invoice-items', invoiceItemRoutes);
+router.use('/tasks', taskAssignmentRoutes);
 
 export default router; 

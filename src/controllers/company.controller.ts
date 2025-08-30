@@ -5,8 +5,8 @@ import { deleteUploadedFile } from '../utils/fileUtils';
 // Create or Update company (unified function)
 export const createOrUpdate = async (req: Request, res: Response): Promise<void> => {
   try {
-    // Check if any company exists
-    const existingCompany = await Company.findOne();
+    // Check if any company exists (only non-deleted)
+    const existingCompany = await Company.findOne({ isDeleted: false });
     
     if (existingCompany) {
       // Update existing company
@@ -67,7 +67,7 @@ export const createOrUpdate = async (req: Request, res: Response): Promise<void>
 // Get company
 export const getAll = async (req: Request, res: Response): Promise<void> => {
   try {
-    const company = await Company.findOne();
+    const company = await Company.findOne({ isDeleted: false });
     
     if (!company) {
       res.status(404).json({
@@ -96,7 +96,7 @@ export const getAll = async (req: Request, res: Response): Promise<void> => {
 // Get company by ID
 export const getById = async (req: Request, res: Response): Promise<void> => {
   try {
-    const company = await Company.findById(req.params.id);
+    const company = await Company.findOne({ _id: req.params.id, isDeleted: false });
     
     if (!company) {
       res.status(404).json({
@@ -125,7 +125,7 @@ export const getById = async (req: Request, res: Response): Promise<void> => {
 // Delete company
 export const deleteCompany = async (req: Request, res: Response): Promise<void> => {
   try {
-    const company = await Company.findById(req.params.id);
+    const company = await Company.findOne({ _id: req.params.id, isDeleted: false });
     
     if (!company) {
       res.status(404).json({
@@ -136,12 +136,13 @@ export const deleteCompany = async (req: Request, res: Response): Promise<void> 
       return;
     }
 
-    // Delete company logo if exists
-    if (company.company_logo) {
-      deleteUploadedFile(company.company_logo);
-    }
+    // Note: We keep the logo file for soft delete - it can be cleaned up later if needed
+    // For soft delete, we don't immediately delete the logo file
+    // if (company.company_logo) {
+    //   deleteUploadedFile(company.company_logo);
+    // }
 
-    await Company.findByIdAndDelete(req.params.id);
+    await Company.findByIdAndUpdate(req.params.id, { isDeleted: true });
 
     res.status(200).json({
       statusCode: 200,
