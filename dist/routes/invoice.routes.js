@@ -228,6 +228,60 @@ router.get('/', invoice_controller_1.getInvoices);
 router.get('/statistics', invoice_controller_1.getInvoiceStatistics);
 /**
  * @swagger
+ * /api/invoices/count:
+ *   get:
+ *     tags: [Invoices]
+ *     summary: Get invoice count for fiscal year
+ *     description: Retrieve the count of invoices for a specific fiscal year (April to March)
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: fiscalYear
+ *         schema:
+ *           type: integer
+ *         description: Fiscal year (e.g., 2024 for FY 2024-25). If not provided, current fiscal year is used.
+ *         example: 2024
+ *     responses:
+ *       200:
+ *         description: Invoice count retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 statusCode:
+ *                   type: integer
+ *                   example: 200
+ *                 message:
+ *                   type: string
+ *                   example: Invoice count retrieved successfully
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     count:
+ *                       type: integer
+ *                       example: 150
+ *                     fiscalYear:
+ *                       type: integer
+ *                       example: 2024
+ *                     dateRange:
+ *                       type: object
+ *                       properties:
+ *                         start:
+ *                           type: string
+ *                           format: date-time
+ *                           example: 2024-04-01T00:00:00.000Z
+ *                         end:
+ *                           type: string
+ *                           format: date-time
+ *                           example: 2025-03-31T23:59:59.999Z
+ *       500:
+ *         description: Server error
+ */
+router.get('/count', invoice_controller_1.getInvoiceCount);
+/**
+ * @swagger
  * /api/invoices/{id}:
  *   get:
  *     tags: [Invoices]
