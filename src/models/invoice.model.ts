@@ -43,7 +43,7 @@ export interface IInvoice extends Document {
   bottomNote?: string;
   acceptTerms: boolean;
   status: 'draft' | 'pending' | 'confirmed' | 'in_progress' | 'completed' | 'cancelled';
-  
+
   // Legacy fields for backward compatibility
   paidAmount?: number;
   dueAmount?: number;
@@ -235,7 +235,7 @@ const invoiceSchema = new Schema<IInvoice>(
       default: 'draft',
       index: true,
     },
-    
+
     // Legacy fields for backward compatibility
     paidAmount: {
       type: Number,
@@ -265,15 +265,15 @@ invoiceSchema.index({ 'items.priority': 1, 'items.deliveryDate': 1 });
 invoiceSchema.index({ dueAmount: -1 }); // For overdue invoices (legacy)
 
 // Pre-save middleware to calculate totals and validate data
-invoiceSchema.pre('save', function(next) {
+invoiceSchema.pre('save', function (next) {
   // Calculate summary totals from items
   let subtotal = 0;
   let totalDiscount = 0;
-  
+
   this.items.forEach(item => {
     const itemSubtotal = item.quantity * item.rate;
     subtotal += itemSubtotal;
-    
+
     if (item.discountType === 'percentage') {
       const discountAmount = (itemSubtotal * item.discountValue) / 100;
       totalDiscount += discountAmount;
@@ -282,24 +282,24 @@ invoiceSchema.pre('save', function(next) {
       totalDiscount += item.discountValue;
       item.total = itemSubtotal - item.discountValue;
     }
-    
+
     // Ensure total is not negative
     item.total = Math.max(0, item.total);
-    
+
     // Round to 2 decimal places
     item.total = Math.round(item.total * 100) / 100;
   });
-  
+
   // Update summary
   this.summary.subtotal = Math.round(subtotal * 100) / 100;
   this.summary.totalDiscount = Math.round(totalDiscount * 100) / 100;
   this.summary.grandTotal = Math.round((subtotal - totalDiscount) * 100) / 100;
-  
+
   // Handle round off
   if (this.summary.roundOffTotal) {
     this.summary.grandTotal = Math.round(this.summary.grandTotal);
   }
-  
+
   // Calculate legacy due amount if paidAmount exists
   if (this.paidAmount !== undefined) {
     this.dueAmount = Math.max(0, this.summary.grandTotal - this.paidAmount);
@@ -311,26 +311,26 @@ invoiceSchema.pre('save', function(next) {
 });
 
 // Virtual for formatted amounts
-invoiceSchema.virtual('formattedGrandTotal').get(function() {
+invoiceSchema.virtual('formattedGrandTotal').get(function () {
   return `₹${this.summary.grandTotal.toFixed(2)}`;
 });
 
-invoiceSchema.virtual('formattedSubtotal').get(function() {
+invoiceSchema.virtual('formattedSubtotal').get(function () {
   return `₹${this.summary.subtotal.toFixed(2)}`;
 });
 
-invoiceSchema.virtual('formattedTotalDiscount').get(function() {
+invoiceSchema.virtual('formattedTotalDiscount').get(function () {
   return `₹${this.summary.totalDiscount.toFixed(2)}`;
 });
 
-invoiceSchema.virtual('formattedDueAmount').get(function() {
+invoiceSchema.virtual('formattedDueAmount').get(function () {
   if (this.dueAmount !== undefined) {
     return `₹${this.dueAmount.toFixed(2)}`;
   }
   return `₹${this.summary.grandTotal.toFixed(2)}`;
 });
 
-invoiceSchema.virtual('formattedPaidAmount').get(function() {
+invoiceSchema.virtual('formattedPaidAmount').get(function () {
   if (this.paidAmount !== undefined) {
     return `₹${this.paidAmount.toFixed(2)}`;
   }
@@ -338,14 +338,14 @@ invoiceSchema.virtual('formattedPaidAmount').get(function() {
 });
 
 // Virtual for payment percentage
-invoiceSchema.virtual('paymentPercentage').get(function() {
+invoiceSchema.virtual('paymentPercentage').get(function () {
   if (this.summary.grandTotal === 0) return 0;
   const paid = this.paidAmount || 0;
   return Math.round((paid / this.summary.grandTotal) * 100);
 });
 
 // Virtual for total profit calculation
-invoiceSchema.virtual('totalProfit').get(function() {
+invoiceSchema.virtual('totalProfit').get(function () {
   let totalProfit = 0;
   this.items.forEach(item => {
     const itemBaseCost = item.quantity * item.baseCost;
@@ -355,22 +355,29 @@ invoiceSchema.virtual('totalProfit').get(function() {
 });
 
 // Static method to generate next invoice number
-invoiceSchema.statics.generateInvoiceNumber = async function() {
-  const lastInvoice = await this.findOne({ isDeleted: false }, {}, { sort: { 'createdAt': -1 } });
-  
-  if (!lastInvoice) {
-    return 'INV-1001';
+// Add static method to generate invoice ID
+invoiceSchema.statics.generateInvoiceId = async function () {
+  const currentYear = new Date().getFullYear();
+  const prefix = `INV-${currentYear}-`;
+
+  // Find the last invoice with the current year prefix
+  const lastInvoice = await this.findOne(
+    { invoiceId: { $regex: `^${prefix}` } },
+    {},
+    { sort: { invoiceId: -1 } }
+  );
+
+  let nextNumber = 1;
+  if (lastInvoice && lastInvoice.invoiceId) {
+    const lastNumber = parseInt(lastInvoice.invoiceId.split('-').pop() || '0');
+    nextNumber = lastNumber + 1;
   }
 
-  const lastNumber = lastInvoice.invoiceNumber;
-  const numberPart = parseInt(lastNumber.split('-')[1]);
-  const nextNumber = numberPart + 1;
-  
-  return `INV-${nextNumber}`;
+  return `${prefix}${nextNumber.toString().padStart(4, '0')}`;
 };
 
 // Static method to get invoice statistics
-invoiceSchema.statics.getInvoiceStats = function(startDate?: Date, endDate?: Date) {
+invoiceSchema.statics.getInvoiceStats = function (startDate?: Date, endDate?: Date) {
   const matchStage: any = { isDeleted: false };
   if (startDate || endDate) {
     matchStage.issuedDate = {};
@@ -416,7 +423,7 @@ invoiceSchema.statics.getInvoiceStats = function(startDate?: Date, endDate?: Dat
 };
 
 // Static method to get status-wise statistics
-invoiceSchema.statics.getStatusStats = function() {
+invoiceSchema.statics.getStatusStats = function () {
   return this.aggregate([
     { $match: { isDeleted: false } },
     {
