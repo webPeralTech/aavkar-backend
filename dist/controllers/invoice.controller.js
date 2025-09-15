@@ -12,7 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.updateInvoiceStatus = exports.getInvoiceStatistics = exports.updateInvoicePayment = exports.deleteInvoice = exports.updateInvoice = exports.getInvoice = exports.getInvoices = exports.createInvoice = void 0;
+exports.getInvoiceCount = exports.updateInvoiceStatus = exports.getInvoiceStatistics = exports.updateInvoicePayment = exports.deleteInvoice = exports.updateInvoice = exports.getInvoice = exports.getInvoices = exports.createInvoice = void 0;
 const invoice_model_1 = __importDefault(require("../models/invoice.model"));
 const customer_model_1 = __importDefault(require("../models/customer.model"));
 const product_model_1 = __importDefault(require("../models/product.model"));
@@ -457,3 +457,60 @@ const updateInvoiceStatus = (req, res) => __awaiter(void 0, void 0, void 0, func
     }
 });
 exports.updateInvoiceStatus = updateInvoiceStatus;
+const getInvoiceCount = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const { fiscalYear } = req.query;
+        console.log('Fetching invoice count for fiscal year:', { fiscalYear });
+        // If no fiscal year provided, calculate current fiscal year
+        // Fiscal year starts from April (month 3 in JS Date, which is 0-indexed)
+        let targetFiscalYear;
+        if (fiscalYear) {
+            targetFiscalYear = Number(fiscalYear);
+        }
+        else {
+            const today = new Date();
+            // If current month is March (2) or earlier, fiscal year is previous calendar year
+            // If current month is April (3) or later, fiscal year is current calendar year
+            targetFiscalYear = today.getMonth() >= 3 ? today.getFullYear() : today.getFullYear() - 1;
+        }
+        // Fiscal year runs from April 1st to March 31st
+        const fiscalYearStart = new Date(targetFiscalYear, 3, 1); // April 1st
+        const fiscalYearEnd = new Date(targetFiscalYear + 1, 2, 31, 23, 59, 59, 999); // March 31st
+        console.log('Date range for fiscal year:', {
+            fiscalYear: targetFiscalYear,
+            start: fiscalYearStart,
+            end: fiscalYearEnd
+        });
+        // Build filter query for the fiscal year
+        const filter = {
+            isDeleted: false,
+            issuedDate: {
+                $gte: fiscalYearStart,
+                $lte: fiscalYearEnd
+            }
+        };
+        const count = yield invoice_model_1.default.countDocuments(filter);
+        console.log('Invoice count retrieved successfully:', { count, fiscalYear: targetFiscalYear });
+        res.status(200).json({
+            statusCode: 200,
+            message: 'Invoice count retrieved successfully',
+            data: {
+                count,
+                fiscalYear: targetFiscalYear,
+                dateRange: {
+                    start: fiscalYearStart.toISOString(),
+                    end: fiscalYearEnd.toISOString()
+                }
+            },
+        });
+    }
+    catch (error) {
+        console.error('Get invoice count error:', error);
+        res.status(500).json({
+            statusCode: 500,
+            message: 'Server error',
+            error: 'Internal server error'
+        });
+    }
+});
+exports.getInvoiceCount = getInvoiceCount;

@@ -497,4 +497,67 @@ export const updateInvoiceStatus = async (req: Request, res: Response): Promise<
       error: 'Internal server error'
     });
   }
+};
+
+export const getInvoiceCount = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { fiscalYear } = req.query;
+
+    console.log('Fetching invoice count for fiscal year:', { fiscalYear });
+
+    // If no fiscal year provided, calculate current fiscal year
+    // Fiscal year starts from April (month 3 in JS Date, which is 0-indexed)
+    let targetFiscalYear: number;
+    if (fiscalYear) {
+      targetFiscalYear = Number(fiscalYear);
+    } else {
+      const today = new Date();
+      // If current month is March (2) or earlier, fiscal year is previous calendar year
+      // If current month is April (3) or later, fiscal year is current calendar year
+      targetFiscalYear = today.getMonth() >= 3 ? today.getFullYear() : today.getFullYear() - 1;
+    }
+
+    // Fiscal year runs from April 1st to March 31st
+    const fiscalYearStart = new Date(targetFiscalYear, 3, 1); // April 1st
+    const fiscalYearEnd = new Date(targetFiscalYear + 1, 2, 31, 23, 59, 59, 999); // March 31st
+
+    console.log('Date range for fiscal year:', { 
+      fiscalYear: targetFiscalYear, 
+      start: fiscalYearStart, 
+      end: fiscalYearEnd 
+    });
+
+    // Build filter query for the fiscal year
+    const filter: any = { 
+      isDeleted: false,
+      issuedDate: {
+        $gte: fiscalYearStart,
+        $lte: fiscalYearEnd
+      }
+    };
+
+    const count = await invoiceModel.countDocuments(filter);
+
+    console.log('Invoice count retrieved successfully:', { count, fiscalYear: targetFiscalYear });
+
+    res.status(200).json({
+      statusCode: 200,
+      message: 'Invoice count retrieved successfully',
+      data: {
+        count,
+        fiscalYear: targetFiscalYear,
+        dateRange: {
+          start: fiscalYearStart.toISOString(),
+          end: fiscalYearEnd.toISOString()
+        }
+      },
+    });
+  } catch (error) {
+    console.error('Get invoice count error:', error);
+    res.status(500).json({
+      statusCode: 500,
+      message: 'Server error',
+      error: 'Internal server error'
+    });
+  }
 }; 

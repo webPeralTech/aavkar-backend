@@ -319,16 +319,19 @@ invoiceSchema.virtual('totalProfit').get(function () {
     return Math.round(totalProfit * 100) / 100;
 });
 // Static method to generate next invoice number
-invoiceSchema.statics.generateInvoiceNumber = function () {
+// Add static method to generate invoice ID
+invoiceSchema.statics.generateInvoiceId = function () {
     return __awaiter(this, void 0, void 0, function* () {
-        const lastInvoice = yield this.findOne({ isDeleted: false }, {}, { sort: { 'createdAt': -1 } });
-        if (!lastInvoice) {
-            return 'INV-1001';
+        const currentYear = new Date().getFullYear();
+        const prefix = `INV-${currentYear}-`;
+        // Find the last invoice with the current year prefix
+        const lastInvoice = yield this.findOne({ invoiceId: { $regex: `^${prefix}` } }, {}, { sort: { invoiceId: -1 } });
+        let nextNumber = 1;
+        if (lastInvoice && lastInvoice.invoiceId) {
+            const lastNumber = parseInt(lastInvoice.invoiceId.split('-').pop() || '0');
+            nextNumber = lastNumber + 1;
         }
-        const lastNumber = lastInvoice.invoiceNumber;
-        const numberPart = parseInt(lastNumber.split('-')[1]);
-        const nextNumber = numberPart + 1;
-        return `INV-${nextNumber}`;
+        return `${prefix}${nextNumber.toString().padStart(4, '0')}`;
     });
 };
 // Static method to get invoice statistics
