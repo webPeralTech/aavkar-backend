@@ -156,12 +156,29 @@ const getInvoices = (req, res) => __awaiter(void 0, void 0, void 0, function* ()
                                 ]
                             }
                         }
+                    },
+                    isPaid: {
+                        $cond: {
+                            if: { $gte: [{ $ifNull: ['$paidAmount', 0] }, '$summary.grandTotal'] },
+                            then: 1,
+                            else: 0
+                        }
+                    },
+                    isUnpaid: {
+                        $cond: {
+                            if: { $lt: [{ $ifNull: ['$paidAmount', 0] }, '$summary.grandTotal'] },
+                            then: 1,
+                            else: 0
+                        }
                     }
                 }
             },
             {
                 $group: {
                     _id: null,
+                    totalInvoiceCount: { $sum: 1 },
+                    totalPaidCount: { $sum: '$isPaid' },
+                    totalUnpaidCount: { $sum: '$isUnpaid' },
                     totalAmount: { $sum: '$summary.grandTotal' },
                     totalPaid: { $sum: { $ifNull: ['$paidAmount', 0] } },
                     totalDue: { $sum: { $ifNull: ['$dueAmount', '$summary.grandTotal'] } },
@@ -169,6 +186,8 @@ const getInvoices = (req, res) => __awaiter(void 0, void 0, void 0, function* ()
                 }
             }
         ]);
+        // Get total customer count (not filtered, just active customers)
+        const totalCustomerCount = yield customer_model_1.default.countDocuments({ isDeleted: false });
         res.status(200).json({
             statusCode: 200,
             message: 'Invoices retrieved successfully',
@@ -181,11 +200,15 @@ const getInvoices = (req, res) => __awaiter(void 0, void 0, void 0, function* ()
                     pages: Math.ceil(total / Number(limit)),
                 },
                 summary: summaryStats[0] || {
+                    totalInvoiceCount: 0,
+                    totalPaidCount: 0,
+                    totalUnpaidCount: 0,
                     totalAmount: 0,
                     totalPaid: 0,
                     totalDue: 0,
                     totalProfit: 0
-                }
+                },
+                totalCustomerCount
             },
         });
     }
