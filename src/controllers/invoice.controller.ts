@@ -270,9 +270,13 @@ export const getInvoice = async (req: Request, res: Response): Promise<void> => 
 export const updateInvoice = async (req: Request, res: Response): Promise<void> => {
   try {
     const { id } = req.params;
-    const updateData = req.body;
+    let updateData = req.body;
 
     console.log('Updating invoice:', { invoiceId: id, updateData });
+
+    if(updateData?.invoiceNumber){
+      delete updateData.invoiceNumber;
+    }
 
     const invoice = await invoiceModel.findOne({ _id: id, isDeleted: false });
 

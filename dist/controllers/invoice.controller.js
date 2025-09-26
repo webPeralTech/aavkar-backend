@@ -255,8 +255,11 @@ const updateInvoice = (req, res) => __awaiter(void 0, void 0, void 0, function* 
     var _a;
     try {
         const { id } = req.params;
-        const updateData = req.body;
+        let updateData = req.body;
         console.log('Updating invoice:', { invoiceId: id, updateData });
+        if (updateData === null || updateData === void 0 ? void 0 : updateData.invoiceNumber) {
+            delete updateData.invoiceNumber;
+        }
         const invoice = yield invoice_model_1.default.findOne({ _id: id, isDeleted: false });
         if (!invoice) {
             res.status(404).json({
