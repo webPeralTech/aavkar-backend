@@ -186,6 +186,10 @@ export const createProduct = async (req: Request, res: Response): Promise<void> 
       productData.ps_base_cost = Number(productData.ps_base_cost);
     }
 
+    if (productData.product_price !== undefined) {
+      productData.product_price = Number(productData.product_price);
+    }
+
     const product: IProduct = new productModel(productData);
     await product.save();
 
@@ -459,6 +463,9 @@ export const updateProduct = async (req: Request, res: Response): Promise<void> 
     if (updateData.ps_base_cost !== undefined) {
       updateData.ps_base_cost = Number(updateData.ps_base_cost);
     }
+    if (updateData.product_price !== undefined) {
+      updateData.product_price = Number(updateData.product_price);
+    }
 
     // If a new photo is uploaded, delete the old one
     if (updateData.ps_photo && product.ps_photo && updateData.ps_photo !== product.ps_photo) {
@@ -624,7 +631,9 @@ export const createBulkProducts = async (req: Request, res: Response): Promise<v
       if (productData.ps_base_cost !== undefined) {
         productData.ps_base_cost = Number(productData.ps_base_cost);
       }
-
+      if (productData.product_price !== undefined) {
+        productData.product_price = Number(productData.product_price);
+      }
       return productData;
     });
 

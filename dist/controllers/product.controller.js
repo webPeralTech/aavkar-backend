@@ -192,6 +192,9 @@ const createProduct = (req, res) => __awaiter(void 0, void 0, void 0, function* 
         if (productData.ps_base_cost !== undefined) {
             productData.ps_base_cost = Number(productData.ps_base_cost);
         }
+        if (productData.product_price !== undefined) {
+            productData.product_price = Number(productData.product_price);
+        }
         const product = new product_model_1.default(productData);
         yield product.save();
         logger_1.default.info('Product created successfully:', { productId: product._id });
@@ -445,6 +448,9 @@ const updateProduct = (req, res) => __awaiter(void 0, void 0, void 0, function* 
         if (updateData.ps_base_cost !== undefined) {
             updateData.ps_base_cost = Number(updateData.ps_base_cost);
         }
+        if (updateData.product_price !== undefined) {
+            updateData.product_price = Number(updateData.product_price);
+        }
         // If a new photo is uploaded, delete the old one
         if (updateData.ps_photo && product.ps_photo && updateData.ps_photo !== product.ps_photo) {
             (0, fileUtils_1.deleteUploadedFile)(product.ps_photo);
@@ -596,6 +602,9 @@ const createBulkProducts = (req, res) => __awaiter(void 0, void 0, void 0, funct
             }
             if (productData.ps_base_cost !== undefined) {
                 productData.ps_base_cost = Number(productData.ps_base_cost);
+            }
+            if (productData.product_price !== undefined) {
+                productData.product_price = Number(productData.product_price);
             }
             return productData;
         });

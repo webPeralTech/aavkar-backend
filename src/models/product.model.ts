@@ -10,6 +10,7 @@ export interface IProduct extends Document {
   printing_operator_code?: string;
   ps_photo?: string;
   ps_base_cost?: number;
+  product_price?: number;
   isDeleted: boolean;
   createdAt: Date;
   updatedAt: Date;
@@ -93,6 +94,16 @@ const productSchema = new Schema<IProduct>(
         message: 'Base cost must be a positive number'
     },
     },
+    product_price: {
+      type: Number,
+      min: [0, 'Product Price cannot be negative'],
+      validate: {
+        validator: function(v: number) {
+          return v === undefined || v === null || v >= 0;
+    },
+        message: 'Product Price must be a positive number'
+    },
+    },
     isDeleted: {
       type: Boolean,
       default: false,
@@ -109,7 +120,7 @@ productSchema.index({ ps_type: 1, ps_name: 1 });
 productSchema.index({ ps_type: 1, ps_tax: 1 });
 
 // Pre-save middleware to ensure ps_code uniqueness only when provided
-productSchema.pre('save', async function(next) {
+productSchema.pre<IProduct>('save', async function(next) {
   if (this.ps_code === '') {
     this.ps_code = undefined;
   }
@@ -117,7 +128,7 @@ productSchema.pre('save', async function(next) {
 });
 
 // Virtual for full product identification
-productSchema.virtual('fullIdentifier').get(function() {
+productSchema.virtual('fullIdentifier').get(function(this: IProduct) {
   return this.ps_code ? `${this.ps_name} (${this.ps_code})` : this.ps_name;
 });
 
