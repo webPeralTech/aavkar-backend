@@ -121,6 +121,16 @@ const productSchema = new mongoose_1.Schema({
             message: 'Base cost must be a positive number'
         },
     },
+    product_price: {
+        type: Number,
+        min: [0, 'Product Price cannot be negative'],
+        validate: {
+            validator: function (v) {
+                return v === undefined || v === null || v >= 0;
+            },
+            message: 'Product Price must be a positive number'
+        },
+    },
     isDeleted: {
         type: Boolean,
         default: false,
