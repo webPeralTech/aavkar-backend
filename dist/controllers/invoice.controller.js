@@ -528,7 +528,7 @@ const getInvoiceCount = (req, res) => __awaiter(void 0, void 0, void 0, function
         });
         // Build filter query for the fiscal year
         const filter = {
-            isDeleted: false,
+            // isDeleted: false,
             issuedDate: {
                 $gte: fiscalYearStart,
                 $lte: fiscalYearEnd
