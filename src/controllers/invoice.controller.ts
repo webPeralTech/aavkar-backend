@@ -577,7 +577,7 @@ export const getInvoiceCount = async (req: Request, res: Response): Promise<void
 
     // Build filter query for the fiscal year
     const filter: any = { 
-      isDeleted: false,
+      // isDeleted: false,
       issuedDate: {
         $gte: fiscalYearStart,
         $lte: fiscalYearEnd
