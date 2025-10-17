@@ -207,7 +207,7 @@ const invoiceSchema = new mongoose_1.Schema({
     },
     acceptTerms: {
         type: Boolean,
-        required: [true, 'Accept terms is required'],
+        // required: [true, 'Accept terms is required'],
     },
     status: {
         type: String,
