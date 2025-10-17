@@ -36,8 +36,27 @@ export const createInvoice = async (req: Request, res: Response): Promise<void> 
       return;
     }
 
-    // Generate unique invoice number if not provided
-    if (!invoiceData.invoiceNumber) {
+    // Handle invoice number validation and generation
+    if (invoiceData.invoiceNumber) {
+      // Check if invoice number already exists for non-deleted invoices
+      const existingInvoice = await invoiceModel.findOne({ 
+        invoiceNumber: invoiceData.invoiceNumber, 
+        isDeleted: false 
+      });
+      
+      if (existingInvoice) {
+        res.status(400).json({
+          statusCode: 400,
+          message: 'Invoice number already exists',
+          error: 'Invoice number already exists'
+        });
+        return;
+      }
+      
+      // If invoice number exists but is soft-deleted, allow creation
+      console.log('Invoice number provided:', invoiceData.invoiceNumber);
+    } else {
+      // Generate unique invoice number if not provided
       invoiceData.invoiceNumber = await invoiceModel.generateInvoiceNumber();
     }
 
@@ -83,7 +102,8 @@ export const createInvoice = async (req: Request, res: Response): Promise<void> 
       res.status(400).json({
         statusCode: 400,
         message: `Invoice with this ${field} already exists`,
-        error: 'Duplicate entry'
+        error: 'Duplicate entry',
+        details: `The ${field} must be unique across all invoices`
       });
     } else {
       res.status(500).json({

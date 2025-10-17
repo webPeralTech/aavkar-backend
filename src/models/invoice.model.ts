@@ -355,7 +355,30 @@ invoiceSchema.virtual('totalProfit').get(function () {
 });
 
 // Static method to generate next invoice number
-// Add static method to generate invoice ID
+invoiceSchema.statics.generateInvoiceNumber = async function () {
+  const currentYear = new Date().getFullYear();
+  const prefix = `INV-${currentYear}-`;
+
+  // Find the last invoice with the current year prefix (only non-deleted invoices)
+  const lastInvoice = await this.findOne(
+    { 
+      invoiceNumber: { $regex: `^${prefix}` },
+      isDeleted: false
+    },
+    {},
+    { sort: { invoiceNumber: -1 } }
+  );
+
+  let nextNumber = 1;
+  if (lastInvoice && lastInvoice.invoiceNumber) {
+    const lastNumber = parseInt(lastInvoice.invoiceNumber.split('-').pop() || '0');
+    nextNumber = lastNumber + 1;
+  }
+
+  return `${prefix}${nextNumber.toString().padStart(4, '0')}`;
+};
+
+// Add static method to generate invoice ID (legacy)
 invoiceSchema.statics.generateInvoiceId = async function () {
   const currentYear = new Date().getFullYear();
   const prefix = `INV-${currentYear}-`;

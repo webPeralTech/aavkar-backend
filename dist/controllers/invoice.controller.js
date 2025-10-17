@@ -42,8 +42,26 @@ const createInvoice = (req, res) => __awaiter(void 0, void 0, void 0, function* 
             });
             return;
         }
-        // Generate unique invoice number if not provided
-        if (!invoiceData.invoiceNumber) {
+        // Handle invoice number validation and generation
+        if (invoiceData.invoiceNumber) {
+            // Check if invoice number already exists for non-deleted invoices
+            const existingInvoice = yield invoice_model_1.default.findOne({
+                invoiceNumber: invoiceData.invoiceNumber,
+                isDeleted: false
+            });
+            if (existingInvoice) {
+                res.status(400).json({
+                    statusCode: 400,
+                    message: 'Invoice number already exists',
+                    error: 'Invoice number already exists'
+                });
+                return;
+            }
+            // If invoice number exists but is soft-deleted, allow creation
+            console.log('Invoice number provided:', invoiceData.invoiceNumber);
+        }
+        else {
+            // Generate unique invoice number if not provided
             invoiceData.invoiceNumber = yield invoice_model_1.default.generateInvoiceNumber();
         }
         // Set default from information if not provided
@@ -85,7 +103,8 @@ const createInvoice = (req, res) => __awaiter(void 0, void 0, void 0, function* 
             res.status(400).json({
                 statusCode: 400,
                 message: `Invoice with this ${field} already exists`,
-                error: 'Duplicate entry'
+                error: 'Duplicate entry',
+                details: `The ${field} must be unique across all invoices`
             });
         }
         else {
