@@ -224,7 +224,7 @@ const invoiceSchema = new Schema<IInvoice>(
     },
     acceptTerms: {
       type: Boolean,
-      required: [true, 'Accept terms is required'],
+      // required: [true, 'Accept terms is required'],
     },
     status: {
       type: String,
