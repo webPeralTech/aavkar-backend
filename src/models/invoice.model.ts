@@ -130,12 +130,12 @@ const invoiceItemSchema = new Schema({
   workInstruction: {
     type: String,
     trim: true,
-    maxlength: [500, 'Work instruction cannot be more than 500 characters'],
+    // maxlength: [500, 'Work instruction cannot be more than 500 characters'],
   },
   printingInstructions: {
     type: String,
     trim: true,
-    maxlength: [500, 'Printing instructions cannot be more than 500 characters'],
+    // maxlength: [500, 'Printing instructions cannot be more than 500 characters'],
   },
 });
 
